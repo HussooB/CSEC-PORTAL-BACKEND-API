@@ -1,0 +1,47 @@
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Logs
+logs/
+*.log
+*.log.*
+
+# Environment variables
+.env
+.env.*.local
+
+# Build output
+dist/
+build/
+coverage/
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*.bak
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE-specific files
+.idea/
+.vscode/
+*.code-workspace
+
+# Test coverage
+coverage/
+
+# PM2 logs and dumps
+pm2_logs/
+*.pid
+*.pid.lock
+
+# Miscellaneous
+*.tgz
+*.lock-wscript
