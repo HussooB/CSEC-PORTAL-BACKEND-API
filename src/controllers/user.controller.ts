@@ -15,15 +15,19 @@ export const createUserAsPresident = async (
                 success: false,
                 error: "Email, password, and division are required.",
             });
+            return;
         }
 
         // Check if the user already exists
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
+        const userAlreadyExists = await User.findOne({ email });
+        console.log("userAlreadyExists", userAlreadyExists);
+
+        if (userAlreadyExists) {
             res.status(400).json({
                 success: false,
-                error: "User with this email already exists.",
+                message: "User already exists",
             });
+            return;
         }
 
         // Hash the password
@@ -37,6 +41,7 @@ export const createUserAsPresident = async (
             division,
             group: group || "unassigned",
         });
+        await newUser.save();
         if (newUser) {
             res.status(201).json({
                 success: true,
