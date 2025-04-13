@@ -1,42 +1,21 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, Document } from 'mongoose';
 
-const Division = new mongoose.Schema(
-    {
-        division_name: {
-            type: String,
-        },
-        description: {
-            type: String,
-        },
-        logo: {
-            type: String,
-        },
-        year_of_establishment: {
-            type: Number,
-        },
-        Groups: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "Group",
-            },
-        ],
-        Head: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "User",
-        },
-        Coordinators: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "User",
-            },
-        ],
-        Members: [
-            {
-                type: mongoose.Schema.Types.ObjectId,
-                ref: "User",
-            },
-        ],
-    },
-    { timestamps: true }
-);
-export default mongoose.model("Division", Division);
+export interface IDivision extends Document {
+  name: string;
+  head?: mongoose.Types.ObjectId;
+  members: mongoose.Types.ObjectId[];
+  coordinators: mongoose.Types.ObjectId[];
+  year_of_establishment?: number;
+  logo?: string;
+}
+
+const DivisionSchema = new Schema<IDivision>({
+  name: { type: String, required: true },
+  head: { type: Schema.Types.ObjectId, ref: 'User' },
+  members: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  coordinators: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+  year_of_establishment: Number,
+  logo: String,
+}, { timestamps: true });
+
+export default mongoose.model<IDivision>('Division', DivisionSchema);

@@ -26,5 +26,8 @@
         "onlyBuiltDependencies": [
             "bcrypt"
         ]
+    },
+    "devDependencies": {
+        "@types/mongoose": "^5.11.96"
     }
 }

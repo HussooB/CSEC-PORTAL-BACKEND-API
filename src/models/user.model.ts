@@ -1,42 +1,63 @@
-import mongoose from "mongoose";
+import mongoose, { Schema, Document } from 'mongoose';
 
-const User = new mongoose.Schema(
-    {
-        email: { type: String, required: true, unique: true },
-        password: { type: String, required: true },
-        current_profile_id: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: "Profile",
-            default: null,
-        },
-        personal_info: {
-            required: {
-                first_name: { type: String },
-                last_name: { type: String },
-                gender: { type: String },
-                birth_date: { type: Date },
-                phone_number: { type: String },
-                github_handle: { type: String },
-                telegram_handle: { type: String },
-                department: { type: String },
-                specialization: { type: String },
-                graduation_year: { type: Number },
-                university_id: { type: String },
-            },
-            optional: {
-                bio: { type: String },
-                instagram_handle: { type: String },
-                linkedin_handle: { type: String },
-                leetcode_handle: { type: String },
-                codeforce_handle: { type: String },
-                cv_link: { type: String },
-                resources: [{ resource_name: String, resource_link: String }],
-            },
-        },
-        profile_list: [
-            { type: mongoose.Schema.Types.ObjectId, ref: "Profile" },
-        ],
-    },
-    { timestamps: true }
-);
-export default mongoose.model("User", User);
+export interface IUser extends Document {
+  email: string;
+  passwordHash: string;
+  role: 'super_admin' | 'president' | 'division_head' | 'member';
+  current_profile_id?: mongoose.Types.ObjectId;
+  profile_list: mongoose.Types.ObjectId[];
+  personal_info?: {
+    first_name?: string;
+    last_name?: string;
+    gender?: string;
+    birth_date?: Date;
+    phone_number?: string;
+    github_handle?: string;
+    telegram_handle?: string;
+    department?: string;
+    specialization?: string;
+    graduation_year?: number;
+    university_id?: string;
+    bio?: string;
+    instagram_handle?: string;
+    linkedin_handle?: string;
+    leetcode_handle?: string;
+    codeforce_handle?: string;
+    cv_link?: string;
+    resources?: { resource_name: string; resource_link: string }[];
+  };
+}
+
+const UserSchema = new Schema<IUser>({
+  email: { type: String, required: true, unique: true },
+  passwordHash: { type: String, required: true },
+  role: {
+    type: String,
+    enum: ['super_admin', 'president', 'division_head', 'member'],
+    default: 'member',
+  },
+  current_profile_id: { type: Schema.Types.ObjectId, ref: 'Profile', default: null },
+  profile_list: [{ type: Schema.Types.ObjectId, ref: 'Profile' }],
+  personal_info: {
+    first_name: String,
+    last_name: String,
+    gender: String,
+    birth_date: Date,
+    phone_number: String,
+    github_handle: String,
+    telegram_handle: String,
+    department: String,
+    specialization: String,
+    graduation_year: Number,
+    university_id: String,
+    bio: String,
+    instagram_handle: String,
+    linkedin_handle: String,
+    leetcode_handle: String,
+    codeforce_handle: String,
+    cv_link: String,
+    resources: [{ resource_name: String, resource_link: String }]
+  }
+}, { timestamps: true });
+
+export default mongoose.model<IUser>('User', UserSchema);
