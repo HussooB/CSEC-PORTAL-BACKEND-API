@@ -1,107 +1,66 @@
-import User from "../models/user.model";
-import { Request, Response } from "express";
-import bcrypt from "bcrypt";
+import { Request, Response } from 'express';
+import User from '../models/user.model';
+import bcrypt from 'bcryptjs';
+import { sendEmail } from '../utils/emailSender';
 
-export const createUserAsPresident = async (
-    req: Request,
-    res: Response
-): Promise<void> => {
-    try {
-        const { email, password, division, group } = req.body;
+export const createUserAsPresident = async (req: Request, res: Response) => {
+  const { email, password, role = 'member' } = req.body;
 
-        // Validate input
-        if (!email || !password || !division) {
-            res.status(400).json({
-                success: false,
-                error: "Email, password, and division are required.",
-            });
-            return;
-        }
+  try {
+    const userExists = await User.findOne({ email });
+    if (userExists) return res.status(400).json({ message: 'User already exists' });
 
-        // Check if the user already exists
-        const userAlreadyExists = await User.findOne({ email });
-        console.log("userAlreadyExists", userAlreadyExists);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    const user = await User.create({ email, passwordHash: hashedPassword, role });
 
-        if (userAlreadyExists) {
-            res.status(400).json({
-                success: false,
-                message: "User already exists",
-            });
-            return;
-        }
+    const html = `
+      <h2>Welcome to the CSEC Club!</h2>
+      <p>Your account has been created.</p>
+      <p><b>Email:</b> ${email}</p>
+      <p><b>Password:</b> ${password}</p>
+    `;
+    await sendEmail(email, 'Welcome to CSEC 🎉', html);
 
-        // Hash the password
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-
-        // Create a new user
-        const newUser = new User({
-            email,
-            password: hashedPassword,
-            division,
-            group: group || "unassigned",
-        });
-        await newUser.save();
-        if (newUser) {
-            res.status(201).json({
-                success: true,
-                message: "User created successfully",
-                user: newUser,
-            });
-        } else {
-            res.status(400).json({
-                success: false,
-                error: "Failure to create new user.",
-            });
-        }
-    } catch (error) {
-        res.status(500).json({
-            error: "An error occurred while creating the user.",
-            details: error,
-        });
-    }
+    res.status(201).json({ message: 'User invited & email sent', user });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err });
+  }
 };
 
-export const getUser = async (req: Request, res: Response) => {
-    try {
-        res.send("Fetching user");
-    } catch (error) {
-        res.status(500).json({
-            error: "An error occurred while fetching the user.",
-            details: error,
-        });
-    }
+export const getAllUsers = async (_req: Request, res: Response) => {
+  try {
+    const users = await User.find().select('-passwordHash');
+    res.json(users);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to fetch users', error: err });
+  }
+};
+
+export const getUserById = async (req: Request, res: Response) => {
+  try {
+    const user = await User.findById(req.params.id).select('-passwordHash');
+    if (!user) return res.status(404).json({ message: 'User not found' });
+    res.json(user);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error', error: err });
+  }
 };
 
 export const updateUser = async (req: Request, res: Response) => {
-    try {
-        res.send("Updating user");
-    } catch (error) {
-        res.status(500).json({
-            error: "An error occurred while updating the user.",
-            details: error,
-        });
-    }
+  try {
+    const updated = await User.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    if (!updated) return res.status(404).json({ message: 'User not found' });
+    res.json(updated);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to update user', error: err });
+  }
 };
 
 export const deleteUser = async (req: Request, res: Response) => {
-    try {
-        res.send("Deleting user");
-    } catch (error) {
-        res.status(500).json({
-            error: "An error occurred while deleting the user.",
-            details: error,
-        });
-    }
-};
-
-export const listUsers = async (req: Request, res: Response) => {
-    try {
-        res.send("Listing users");
-    } catch (error) {
-        res.status(500).json({
-            error: "An error occurred while listing the users.",
-            details: error,
-        });
-    }
+  try {
+    await User.findByIdAndDelete(req.params.id);
+    res.json({ message: 'User deleted successfully' });
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to delete user', error: err });
+  }
 };

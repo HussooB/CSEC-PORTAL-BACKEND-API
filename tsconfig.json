@@ -1,5 +1,9 @@
 {
     "compilerOptions": {
+        "baseUrl": "./",
+        "paths": {
+            "@middlewares/*": ["src/middlewares/*"]
+        },
         "target": "ESNext",
         "module": "CommonJS",
         "outDir": "./dist",
