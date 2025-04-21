@@ -1,8 +1,8 @@
-// user.schema.ts
 import * as yup from 'yup';
 
-export const userRegistrationSchema = yup.object({
-  email: yup.string().email().required(),
-  password: yup.string().min(6).required(),
-  role: yup.string().oneOf(['member', 'division_head', 'president']).optional(),
+export const userRegistrationSchema = yup.object().shape({
+  email: yup.string().email('Invalid email format').required('Email is required'),
+  password: yup.string().min(6, 'Password must be at least 6 characters').required('Password is required'),
+  divisionId: yup.string().required('Division ID is required'),
+  groupId: yup.string().required('Group ID is required'),
 });

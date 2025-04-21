@@ -1,22 +1,21 @@
-// group.controller.ts
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import Group from '../models/group.model';
 
-export const createGroup = async (req: Request, res: Response) => {
+export const createGroup = async (req: Request, res: Response, next: NextFunction) => {
   const { name, division } = req.body;
   try {
     const group = await Group.create({ name, division });
     res.status(201).json(group);
   } catch (err) {
-    res.status(500).json({ message: 'Failed to create group', error: err });
+    next(err);
   }
 };
 
-export const getGroupsByDivision = async (req: Request, res: Response) => {
+export const getGroupsByDivision = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const groups = await Group.find({ division: req.params.divisionId });
     res.json(groups);
   } catch (err) {
-    res.status(500).json({ message: 'Failed to get groups', error: err });
+    next(err);
   }
 };

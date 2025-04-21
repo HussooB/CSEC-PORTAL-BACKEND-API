@@ -1,18 +1,39 @@
-// src/middleware/checkOwnership.ts
 import { Request, Response, NextFunction } from 'express';
 import Division from '../models/division.model';
+import Group from '../models/group.model';
 
 export const checkOwnership = async (req: Request, res: Response, next: NextFunction) => {
   const user = (req as any).user;
 
-  if (user.role === 'division_head') {
-    const divisionId = req.body.divisionId || req.params.divisionId;
-    const division = await Division.findById(divisionId);
+  try {
+    // For division operations
+    if (req.params.divisionId || req.body.division) {
+      const divisionId = req.params.divisionId || req.body.division;
+      const division = await Division.findById(divisionId);
 
-    if (!division || division.head?.toString() !== user.id) {
-      return res.status(403).json({ message: 'Not allowed to access this division.' });
+      if (!division || division.head?.toString() !== user.id) {
+        const error = new Error('Not allowed to modify this division.');
+        (error as any).statusCode = 403;
+        (error as any).isOperational = true;
+        return next(error); // Forward error to errorHandler
+      }
     }
-  }
 
-  next();
+    // For group operations
+    if (req.params.groupId || req.body.group) {
+      const groupId = req.params.groupId || req.body.group;
+      const group = await Group.findById(groupId).populate('division');
+
+      if (!group || (group.division as any).head?.toString() !== user.id) {
+        const error = new Error('Not allowed to modify this group.');
+        (error as any).statusCode = 403;
+        (error as any).isOperational = true;
+        return next(error); // Forward error to errorHandler
+      }
+    }
+
+    next();
+  } catch (err) {
+    next(err); // Forward error to errorHandler
+  }
 };

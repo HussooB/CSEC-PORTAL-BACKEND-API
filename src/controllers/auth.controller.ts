@@ -1,9 +1,9 @@
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import User from '../models/user.model';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
-export const login = async (req: Request, res: Response) => {
+export const login = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password } = req.body;
 
   try {
@@ -19,6 +19,6 @@ export const login = async (req: Request, res: Response) => {
 
     res.json({ token, user });
   } catch (err) {
-    res.status(500).json({ message: 'Login failed', error: err });
+    next(err); // Forward error to errorHandler
   }
 };

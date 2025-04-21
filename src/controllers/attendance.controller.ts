@@ -1,30 +1,55 @@
-// attendance.controller.ts
-import { Request, Response } from 'express';
+import { Request, Response, NextFunction } from 'express';
 import Attendance from '../models/attendance.model';
 
-export const markAttendance = async (req: Request, res: Response) => {
+export const markAttendance = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const attendance = await Attendance.create(req.body);
     res.status(201).json(attendance);
   } catch (err) {
-    res.status(500).json({ message: 'Failed to mark attendance', error: err });
+    next(err);
   }
 };
 
-export const getAttendanceByProfile = async (req: Request, res: Response) => {
+export const getAttendanceByProfile = async (req: Request, res: Response, next: NextFunction) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+
   try {
-    const data = await Attendance.find({ profile: req.params.profileId });
-    res.json(data);
+    const total = await Attendance.countDocuments({ profile: req.params.profileId });
+    const data = await Attendance.find({ profile: req.params.profileId })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.json({
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      data,
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to get attendance', error: err });
+    next(err);
   }
 };
 
-export const getAttendanceBySession = async (req: Request, res: Response) => {
+export const getAttendanceBySession = async (req: Request, res: Response, next: NextFunction) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+
   try {
-    const data = await Attendance.find({ session: req.params.sessionId });
-    res.json(data);
+    const total = await Attendance.countDocuments({ session: req.params.sessionId });
+    const data = await Attendance.find({ session: req.params.sessionId })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.json({
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      data,
+    });
   } catch (err) {
-    res.status(500).json({ message: 'Failed to get session attendance', error: err });
+    next(err);
   }
 };
