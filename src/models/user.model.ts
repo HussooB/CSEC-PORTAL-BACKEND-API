@@ -26,38 +26,43 @@ export interface IUser extends Document {
     cv_link?: string;
     resources?: { resource_name: string; resource_link: string }[];
   };
+  refreshToken?: string | null; // Allow null as a valid value
 }
 
-const UserSchema = new Schema<IUser>({
-  email: { type: String, required: true, unique: true },
-  passwordHash: { type: String, required: true },
-  role: {
-    type: String,
-    enum: ['super_admin', 'president', 'division_head', 'member'],
-    default: 'member',
+const UserSchema = new Schema<IUser>(
+  {
+    email: { type: String, required: true, unique: true },
+    passwordHash: { type: String, required: true },
+    role: {
+      type: String,
+      enum: ['super_admin', 'president', 'division_head', 'member'],
+      default: 'member',
+    },
+    current_profile_id: { type: Schema.Types.ObjectId, ref: 'Profile', default: null },
+    profile_list: [{ type: Schema.Types.ObjectId, ref: 'Profile' }],
+    personal_info: {
+      first_name: String,
+      last_name: String,
+      gender: String,
+      birth_date: Date,
+      phone_number: String,
+      github_handle: String,
+      telegram_handle: String,
+      department: String,
+      specialization: String,
+      graduation_year: Number,
+      university_id: String,
+      bio: String,
+      instagram_handle: String,
+      linkedin_handle: String,
+      leetcode_handle: String,
+      codeforce_handle: String,
+      cv_link: String,
+      resources: [{ resource_name: String, resource_link: String }],
+    },
+    refreshToken: { type: String, default: null }, // Add refreshToken field
   },
-  current_profile_id: { type: Schema.Types.ObjectId, ref: 'Profile', default: null },
-  profile_list: [{ type: Schema.Types.ObjectId, ref: 'Profile' }],
-  personal_info: {
-    first_name: String,
-    last_name: String,
-    gender: String,
-    birth_date: Date,
-    phone_number: String,
-    github_handle: String,
-    telegram_handle: String,
-    department: String,
-    specialization: String,
-    graduation_year: Number,
-    university_id: String,
-    bio: String,
-    instagram_handle: String,
-    linkedin_handle: String,
-    leetcode_handle: String,
-    codeforce_handle: String,
-    cv_link: String,
-    resources: [{ resource_name: String, resource_link: String }]
-  }
-}, { timestamps: true });
+  { timestamps: true }
+);
 
 export default mongoose.model<IUser>('User', UserSchema);
