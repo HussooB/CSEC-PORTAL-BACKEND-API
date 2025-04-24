@@ -6,10 +6,15 @@ import {
   getAllUsers,
   getUserById,
   updateUser,
-  deleteUser
+  deleteUser,
+  uploadUserProfilePicture,
+  deleteUserProfilePicture,
+  uploadUserCV,
+  deleteUserCV
 } from '../controllers/user.controller';
 import { verifyToken } from '../middleware/auth.middleware';
 import { restrictTo } from '../middleware/role.middleware';
+import { uploadProfilePicture, uploadCV } from '../middleware/cloudinary';
 
 const router = Router();
 
@@ -139,5 +144,133 @@ router.put('/:id', verifyToken, restrictTo('president', 'division_head'), update
  *         description: Unauthorized
  */
 router.delete('/:id', verifyToken, restrictTo('president'), deleteUser);
+
+/**
+ * @swagger
+ * /user/upload-profile-picture/{id}:
+ *   put:
+ *     summary: Upload user profile picture
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     consumes:
+ *       - multipart/form-data
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *       - in: formData
+ *         name: file
+ *         type: file
+ *         required: true
+ *         description: Profile picture file (jpg, png)
+ *     responses:
+ *       200:
+ *         description: Profile picture uploaded
+ *       400:
+ *         description: No file uploaded
+ *       404:
+ *         description: User not found
+ */
+router.put(
+  '/upload-profile-picture/:id',
+  verifyToken,
+  uploadProfilePicture.single('file'),
+  uploadUserProfilePicture
+);
+
+/**
+ * @swagger
+ * /user/upload-profile-picture/{id}:
+ *   delete:
+ *     summary: Delete user profile picture
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: Profile picture deleted
+ *       404:
+ *         description: User not found
+ */
+router.delete(
+  '/upload-profile-picture/:id',
+  verifyToken,
+  deleteUserProfilePicture
+);
+
+/**
+ * @swagger
+ * /user/upload-cv/{id}:
+ *   put:
+ *     summary: Upload user CV
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     consumes:
+ *       - multipart/form-data
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *       - in: formData
+ *         name: file
+ *         type: file
+ *         required: true
+ *         description: CV file (pdf, doc, docx)
+ *     responses:
+ *       200:
+ *         description: CV uploaded
+ *       400:
+ *         description: No file uploaded
+ *       404:
+ *         description: User not found
+ */
+router.put(
+  '/upload-cv/:id',
+  verifyToken,
+  uploadCV.single('file'),
+  uploadUserCV
+);
+
+/**
+ * @swagger
+ * /user/upload-cv/{id}:
+ *   delete:
+ *     summary: Delete user CV
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: CV deleted
+ *       404:
+ *         description: User not found
+ */
+router.delete(
+  '/upload-cv/:id',
+  verifyToken,
+  deleteUserCV
+);
 
 export default router;

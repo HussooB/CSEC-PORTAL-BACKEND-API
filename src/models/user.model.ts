@@ -23,10 +23,11 @@ export interface IUser extends Document {
     linkedin_handle?: string;
     leetcode_handle?: string;
     codeforce_handle?: string;
+    profile_picture?: string; // ✅ Added this line
     cv_link?: string;
     resources?: { resource_name: string; resource_link: string }[];
   };
-  refreshToken?: string | null; // Allow null as a valid value
+  refreshToken?: string | null;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -57,10 +58,11 @@ const UserSchema = new Schema<IUser>(
       linkedin_handle: String,
       leetcode_handle: String,
       codeforce_handle: String,
+      profile_picture: String, // ✅ Added this line
       cv_link: String,
       resources: [{ resource_name: String, resource_link: String }],
     },
-    refreshToken: { type: String, default: null }, // Add refreshToken field
+    refreshToken: { type: String, default: null },
   },
   { timestamps: true }
 );

@@ -36,6 +36,64 @@ const swaggerOptions = {
             },
           },
         },
+        User: {
+          type: 'object',
+          properties: {
+            _id: {
+              type: 'string',
+              description: 'User ID',
+              example: '64b7f3e2c9a1f2a3b4c5d6e7',
+            },
+            email: {
+              type: 'string',
+              description: 'User email',
+              example: 'user@example.com',
+            },
+            role: {
+              type: 'string',
+              description: 'User role',
+              enum: ['super_admin', 'president', 'division_head', 'member'],
+              example: 'member',
+            },
+            personal_info: {
+              type: 'object',
+              properties: {
+                first_name: {
+                  type: 'string',
+                  description: 'First name of the user',
+                  example: 'John',
+                },
+                last_name: {
+                  type: 'string',
+                  description: 'Last name of the user',
+                  example: 'Doe',
+                },
+                profile_picture: {
+                  type: 'string',
+                  description: 'URL of the user\'s profile picture',
+                  example: 'https://example.com/profile.jpg',
+                },
+                cv_link: {
+                  type: 'string',
+                  description: 'URL of the user\'s CV',
+                  example: 'https://example.com/cv.pdf',
+                },
+              },
+            },
+            createdAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'User creation timestamp',
+              example: '2025-04-24T07:53:17.108Z',
+            },
+            updatedAt: {
+              type: 'string',
+              format: 'date-time',
+              description: 'User update timestamp',
+              example: '2025-04-24T07:53:17.108Z',
+            },
+          },
+        },
         UserRegistration: {
           type: 'object',
           required: ['email', 'password', 'divisionId', 'groupId'],
@@ -82,52 +140,94 @@ const swaggerOptions = {
             },
           },
         },
-        Division: {
-          type: 'object',
-          required: ['name'],
-          properties: {
-            name: {
-              type: 'string',
-              description: 'Division name',
-              example: 'Engineering',
-            },
-          },
-        },
-        DivisionUpdate: {
-          type: 'object',
-          properties: {
-            name: {
-              type: 'string',
-              description: 'Updated division name',
-              example: 'Updated Engineering',
-            },
-          },
-        },
         Event: {
           type: 'object',
-          required: ['title', 'divisionId', 'startDate', 'endDate'],
+          required: ['title', 'description', 'date', 'time'],
           properties: {
             title: {
               type: 'string',
               description: 'Event title',
               example: 'Annual Meeting',
             },
-            divisionId: {
+            description: {
               type: 'string',
-              description: 'ID of the division',
-              example: '64b7f3e2c9a1f2a3b4c5d6e7',
+              description: 'Event description',
+              example: 'This is the annual meeting for all members.',
             },
-            startDate: {
+            date: {
               type: 'string',
               format: 'date',
-              description: 'Start date of the event',
+              description: 'Event date',
               example: '2025-05-01',
             },
-            endDate: {
+            time: {
+              type: 'string',
+              description: 'Event time',
+              example: '10:00 AM',
+            },
+            location: {
+              type: 'string',
+              description: 'Event location',
+              example: 'Main Hall',
+            },
+          },
+        },
+        HeadsUp: {
+          type: 'object',
+          required: ['type', 'reason'],
+          properties: {
+            type: {
+              type: 'string',
+              description: 'Type of heads-up',
+              example: 'Excused Absence',
+            },
+            reason: {
+              type: 'string',
+              description: 'Reason for the heads-up',
+              example: 'Medical emergency',
+            },
+          },
+        },
+        Session: {
+          type: 'object',
+          required: ['title', 'division', 'startMonth', 'endMonth'],
+          properties: {
+            title: {
+              type: 'string',
+              description: 'Session title',
+              example: 'Spring 2025',
+            },
+            division: {
+              type: 'string',
+              description: 'Division ID',
+              example: '64b7f3e2c9a1f2a3b4c5d6e7',
+            },
+            startMonth: {
               type: 'string',
               format: 'date',
-              description: 'End date of the event',
-              example: '2025-05-02',
+              description: 'Start month of the session',
+              example: '2025-01-01',
+            },
+            endMonth: {
+              type: 'string',
+              format: 'date',
+              description: 'End month of the session',
+              example: '2025-06-30',
+            },
+            day: {
+              type: 'string',
+              description: 'Day of the session',
+              example: 'Monday',
+            },
+            startTime: {
+              type: 'string',
+              description: 'Start time of the session',
+              example: '10:00 AM',
+            },
+            endTime: {
+              type: 'string',
+              description: 'End time of the session',
+              example: '12:00 PM',
             },
           },
         },
@@ -153,35 +253,40 @@ const swaggerOptions = {
             },
           },
         },
-        Resource: {
+        Division: {
           type: 'object',
-          required: ['name', 'link'],
+          required: ['name'],
           properties: {
             name: {
               type: 'string',
-              description: 'Resource name',
-              example: 'Documentation',
-            },
-            link: {
-              type: 'string',
-              description: 'Resource link',
-              example: 'https://example.com/resource',
+              description: 'Division name',
+              example: 'Engineering',
             },
           },
         },
-        HeadsUp: {
+        DivisionUpdate: {
           type: 'object',
-          required: ['type', 'reason'],
           properties: {
-            type: {
+            name: {
               type: 'string',
-              description: 'Type of heads-up',
-              example: 'Excused Absence',
+              description: 'Updated division name',
+              example: 'Updated Engineering',
             },
-            reason: {
+          },
+        },
+        Group: {
+          type: 'object',
+          required: ['name', 'division'],
+          properties: {
+            name: {
               type: 'string',
-              description: 'Reason for the heads-up',
-              example: 'Medical emergency',
+              description: 'Group name',
+              example: 'Frontend Team',
+            },
+            division: {
+              type: 'string',
+              description: 'Division ID',
+              example: '64b7f3e2c9a1f2a3b4c5d6e7',
             },
           },
         },
@@ -202,6 +307,44 @@ const swaggerOptions = {
               type: 'string',
               description: 'Updated phone number',
               example: '+1234567890',
+            },
+          },
+        },
+        Resource: {
+          type: 'object',
+          required: ['name', 'link'],
+          properties: {
+            name: {
+              type: 'string',
+              description: 'Resource name',
+              example: 'Documentation',
+            },
+            link: {
+              type: 'string',
+              description: 'Resource link',
+              example: 'https://example.com/resource',
+            },
+          },
+        },
+        SessionUpdate: {
+          type: 'object',
+          properties: {
+            title: {
+              type: 'string',
+              description: 'Updated session title',
+              example: 'Updated Spring 2025',
+            },
+            startMonth: {
+              type: 'string',
+              format: 'date',
+              description: 'Updated start month',
+              example: '2025-02-01',
+            },
+            endMonth: {
+              type: 'string',
+              format: 'date',
+              description: 'Updated end month',
+              example: '2025-07-31',
             },
           },
         },
