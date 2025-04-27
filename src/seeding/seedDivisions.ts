@@ -2,8 +2,10 @@ import Division from '../models/division.model';
 
 export const seedDivisions = async () => {
   const divisions = [
-    { name: 'Engineering', year_of_establishment: 2000 },
-    { name: 'Marketing', year_of_establishment: 2010 },
+    { name: 'CPD', year_of_establishment: 2015 },
+    { name: 'DEV', year_of_establishment: 2010 },
+    { name: 'CYBER', year_of_establishment: 2018 },
+    { name: 'DATA SCIENCE', year_of_establishment: 2020 },
   ];
 
   for (const division of divisions) {

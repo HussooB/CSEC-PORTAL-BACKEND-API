@@ -3,26 +3,34 @@ import User from '../models/user.model';
 import Division from '../models/division.model';
 
 export const seedProfiles = async () => {
-  const user = await User.findOne({ email: 'superadmin@example.com' });
-  const division = await Division.findOne({ name: 'Engineering' });
+  const users = [
+    { email: 'kiyakebe799@gmail.com', division: 'CPD' }, // President
+    { email: 'hussein.beshir100@gmail.com', division: 'DEV' }, // Division Head
+    { email: 'mohsad.7676@gmail.com', division: 'CYBER' }, // Regular User
+  ];
 
-  if (!user || !division) {
-    console.log('User or Division not found. Please seed users and divisions first.');
-    return;
-  }
+  for (const userData of users) {
+    const user = await User.findOne({ email: userData.email });
+    const division = await Division.findOne({ name: userData.division });
 
-  const profile = {
-    user: user._id,
-    division: division._id,
-    joining_date: new Date(),
-    status: 'active',
-  };
+    if (!user || !division) {
+      console.log(`User or Division not found for ${userData.email}.`);
+      continue;
+    }
 
-  const existingProfile = await Profile.findOne({ user: user._id });
-  if (!existingProfile) {
-    await Profile.create(profile);
-    console.log('Profile created for super admin.');
-  } else {
-    console.log('Profile for super admin already exists.');
+    const profile = {
+      user: user._id,
+      division: division._id,
+      joining_date: new Date(),
+      status: 'active',
+    };
+
+    const existingProfile = await Profile.findOne({ user: user._id });
+    if (!existingProfile) {
+      await Profile.create(profile);
+      console.log(`Profile created for ${userData.email}.`);
+    } else {
+      console.log(`Profile for ${userData.email} already exists.`);
+    }
   }
 };

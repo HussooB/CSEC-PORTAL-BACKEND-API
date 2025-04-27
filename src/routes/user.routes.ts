@@ -1,20 +1,21 @@
 import { Router } from 'express';
 import { validateBody } from '../middleware/validateBody';
+import { validateMultipartBody } from '../middleware/validateMultipartBody';
 import { userRegistrationSchema } from '../utils/validationSchemas/user.schema';
+import { personalInfoSchema } from '../utils/validationSchemas/personalInfo.schema';
 import {
   createUserAsPresident,
   getAllUsers,
   getUserById,
   updateUser,
   deleteUser,
-  uploadUserProfilePicture,
+  deleteUserCV,
   deleteUserProfilePicture,
-  uploadUserCV,
-  deleteUserCV
+  updateFullPersonalInfo,
 } from '../controllers/user.controller';
 import { verifyToken } from '../middleware/auth.middleware';
 import { restrictTo } from '../middleware/role.middleware';
-import { uploadProfilePicture, uploadCV } from '../middleware/cloudinary';
+import { uploadCV, uploadProfilePicture, uploadFullInfo } from '../middleware/cloudinary';
 
 const router = Router();
 
@@ -147,9 +148,9 @@ router.delete('/:id', verifyToken, restrictTo('president'), deleteUser);
 
 /**
  * @swagger
- * /user/upload-profile-picture/{id}:
+ * /user/update-full-info/{id}:
  *   put:
- *     summary: Upload user profile picture
+ *     summary: Submit or update full personal information including profile picture and CV
  *     tags: [Users]
  *     security:
  *       - bearerAuth: []
@@ -163,114 +164,80 @@ router.delete('/:id', verifyToken, restrictTo('president'), deleteUser);
  *           type: string
  *         description: User ID
  *       - in: formData
- *         name: file
+ *         name: profile_picture
  *         type: file
- *         required: true
- *         description: Profile picture file (jpg, png)
- *     responses:
- *       200:
- *         description: Profile picture uploaded
- *       400:
- *         description: No file uploaded
- *       404:
- *         description: User not found
- */
-router.put(
-  '/upload-profile-picture/:id',
-  verifyToken,
-  uploadProfilePicture.single('file'),
-  uploadUserProfilePicture
-);
-
-/**
- * @swagger
- * /user/upload-profile-picture/{id}:
- *   delete:
- *     summary: Delete user profile picture
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: User ID
- *     responses:
- *       200:
- *         description: Profile picture deleted
- *       404:
- *         description: User not found
- */
-router.delete(
-  '/upload-profile-picture/:id',
-  verifyToken,
-  deleteUserProfilePicture
-);
-
-/**
- * @swagger
- * /user/upload-cv/{id}:
- *   put:
- *     summary: Upload user CV
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     consumes:
- *       - multipart/form-data
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: User ID
+ *         required: false
+ *         description: Profile picture file
  *       - in: formData
- *         name: file
+ *         name: cv
  *         type: file
- *         required: true
- *         description: CV file (pdf, doc, docx)
+ *         required: false
+ *         description: CV file
+ *       - in: formData
+ *         name: first_name
+ *         type: string
+ *       - in: formData
+ *         name: last_name
+ *         type: string
+ *       - in: formData
+ *         name: gender
+ *         type: string
+ *       - in: formData
+ *         name: birth_date
+ *         type: string
+ *         format: date
+ *       - in: formData
+ *         name: phone_number
+ *         type: string
+ *       - in: formData
+ *         name: github_handle
+ *         type: string
+ *       - in: formData
+ *         name: telegram_handle
+ *         type: string
+ *       - in: formData
+ *         name: department
+ *         type: string
+ *       - in: formData
+ *         name: specialization
+ *         type: string
+ *       - in: formData
+ *         name: graduation_year
+ *         type: integer
+ *       - in: formData
+ *         name: university_id
+ *         type: string
+ *       - in: formData
+ *         name: bio
+ *         type: string
+ *       - in: formData
+ *         name: instagram_handle
+ *         type: string
+ *       - in: formData
+ *         name: linkedin_handle
+ *         type: string
+ *       - in: formData
+ *         name: leetcode_handle
+ *         type: string
+ *       - in: formData
+ *         name: codeforce_handle
+ *         type: string
+ *       - in: formData
+ *         name: resources
+ *         type: string
+ *         description: JSON stringified array of resources
  *     responses:
  *       200:
- *         description: CV uploaded
- *       400:
- *         description: No file uploaded
+ *         description: Personal info updated
  *       404:
  *         description: User not found
  */
 router.put(
-  '/upload-cv/:id',
+  '/update-full-info/:id',
   verifyToken,
-  uploadCV.single('file'),
-  uploadUserCV
-);
-
-/**
- * @swagger
- * /user/upload-cv/{id}:
- *   delete:
- *     summary: Delete user CV
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: User ID
- *     responses:
- *       200:
- *         description: CV deleted
- *       404:
- *         description: User not found
- */
-router.delete(
-  '/upload-cv/:id',
-  verifyToken,
-  deleteUserCV
+  uploadFullInfo,
+  validateMultipartBody(personalInfoSchema),
+  updateFullPersonalInfo
 );
 
 export default router;

@@ -4,7 +4,8 @@ import { attendanceSchema } from '../utils/validationSchemas/attendance.schema';
 import {
   markAttendance,
   getAttendanceByProfile,
-  getAttendanceBySession
+  getAttendanceBySession,
+  getAttendanceStatus, // Import the new controller
 } from '../controllers/attendance.controller';
 import { verifyToken } from '../middleware/auth.middleware';
 
@@ -83,5 +84,30 @@ router.get('/:profileId', verifyToken, getAttendanceByProfile);
  *         description: Unauthorized
  */
 router.get('/session/:sessionId', verifyToken, getAttendanceBySession);
+
+/**
+ * @swagger
+ * /attendance/status/{profileId}:
+ *   get:
+ *     summary: Get attendance status by profile ID
+ *     tags: [Attendance]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: profileId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Profile ID
+ *     responses:
+ *       200:
+ *         description: Attendance status details
+ *       404:
+ *         description: Profile not found
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/status/:profileId', verifyToken, getAttendanceStatus);
 
 export default router;

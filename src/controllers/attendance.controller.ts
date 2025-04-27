@@ -1,5 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import Attendance from '../models/attendance.model';
+import Rule from '../models/rule.model'; // Assuming you have a Rule model
+
+interface AttendanceParams {
+  profileId?: string; // For profile-specific attendance
+  sessionId?: string; // For session-specific attendance
+}
 
 export const markAttendance = async (req: Request, res: Response, next: NextFunction) => {
   try {
@@ -10,7 +16,11 @@ export const markAttendance = async (req: Request, res: Response, next: NextFunc
   }
 };
 
-export const getAttendanceByProfile = async (req: Request, res: Response, next: NextFunction) => {
+export const getAttendanceByProfile = async (
+  req: Request<AttendanceParams>,
+  res: Response,
+  next: NextFunction
+) => {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
 
@@ -32,7 +42,11 @@ export const getAttendanceByProfile = async (req: Request, res: Response, next: 
   }
 };
 
-export const getAttendanceBySession = async (req: Request, res: Response, next: NextFunction) => {
+export const getAttendanceBySession = async (
+  req: Request<AttendanceParams>,
+  res: Response,
+  next: NextFunction
+) => {
   const page = parseInt(req.query.page as string) || 1;
   const limit = parseInt(req.query.limit as string) || 10;
 
@@ -49,6 +63,30 @@ export const getAttendanceBySession = async (req: Request, res: Response, next: 
       totalPages: Math.ceil(total / limit),
       data,
     });
+  } catch (err) {
+    next(err);
+  }
+};
+
+export const getAttendanceStatus = async (
+  req: Request<AttendanceParams>,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    const [absences, rules] = await Promise.all([
+      Attendance.countDocuments({
+        profile: req.params.profileId,
+        status: 'absent',
+      }),
+      Rule.findOne().sort({ createdAt: -1 }), // Get the latest rules
+    ]);
+
+    let status = 'Active';
+    if (absences >= (rules?.warningAfter || 0)) status = 'Needs Attention';
+    if (absences >= (rules?.suspendAfter || 0)) status = 'Inactive';
+
+    res.json({ status, absencesCount: absences });
   } catch (err) {
     next(err);
   }

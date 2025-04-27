@@ -5,7 +5,7 @@ export const seedRoles = async () => {
     { name: 'super_admin', permissions: ['*'], is_active: true },
     { name: 'president', permissions: ['manage_divisions', 'manage_users'], is_active: true },
     { name: 'division_head', permissions: ['manage_groups', 'view_reports'], is_active: true },
-    { name: 'member', permissions: ['view_resources'], is_active: true },
+    { name: 'member', permissions: ['view_content'], is_active: true },
   ];
 
   for (const role of roles) {

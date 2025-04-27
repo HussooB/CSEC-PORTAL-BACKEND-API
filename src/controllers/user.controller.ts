@@ -5,7 +5,18 @@ import Group from '../models/group.model';
 import bcrypt from 'bcryptjs';
 import { sendEmail } from '../utils/emailSender';
 import { v2 as cloudinary } from 'cloudinary';
-import { extractPublicId } from '../utils/cloudinaryHelpers'; // ✅ Use utility function
+import { extractPublicId } from '../utils/cloudinaryHelpers';
+
+// Extend Express Request type to include `files`
+declare global {
+  namespace Express {
+    interface Request {
+      files?: {
+        [fieldname: string]: Express.Multer.File[];
+      };
+    }
+  }
+}
 
 // Register User
 export const createUserAsPresident = async (req: Request, res: Response, next: NextFunction) => {
@@ -116,7 +127,11 @@ export const uploadUserProfilePicture = async (req: Request, res: Response, next
       if (publicId) await cloudinary.uploader.destroy(publicId);
     }
 
-    user.personal_info = { ...(user.personal_info || {}), profile_picture: req.file.path };
+    const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'csec/profile_pictures',
+    });
+
+    user.personal_info = { ...(user.personal_info || {}), profile_picture: uploadResult.secure_url };
     await user.save();
 
     res.status(200).json({ message: 'Profile picture uploaded.', user });
@@ -161,7 +176,12 @@ export const uploadUserCV = async (req: Request, res: Response, next: NextFuncti
       if (publicId) await cloudinary.uploader.destroy(publicId);
     }
 
-    user.personal_info = { ...(user.personal_info || {}), cv_link: req.file.path };
+    const uploadResult = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'csec/cvs',
+      resource_type: 'raw',
+    });
+
+    user.personal_info = { ...(user.personal_info || {}), cv_link: uploadResult.secure_url };
     await user.save();
 
     res.status(200).json({ message: 'CV uploaded.', user });
@@ -186,6 +206,106 @@ export const deleteUserCV = async (req: Request, res: Response, next: NextFuncti
     await user.save();
 
     res.status(200).json({ message: 'CV deleted from Cloudinary and DB.', user });
+  } catch (err) {
+    next(err);
+  }
+};
+
+// ✅ Updated: Update full personal_info + profile_picture + CV
+export const updateFullPersonalInfo = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const userId = req.params.id;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const {
+      first_name,
+      last_name,
+      gender,
+      birth_date,
+      phone_number,
+      github_handle,
+      telegram_handle,
+      department,
+      specialization,
+      graduation_year,
+      university_id,
+      bio,
+      instagram_handle,
+      linkedin_handle,
+      leetcode_handle,
+      codeforce_handle,
+      resources,
+    } = req.body;
+
+    // Handle profile picture upload
+    let newProfilePic = user.personal_info?.profile_picture;
+    if (req.files?.['profile_picture']) {
+      const profilePictureFile = req.files['profile_picture'][0];
+      const uploadResult = await cloudinary.uploader.upload(profilePictureFile.path, {
+        folder: 'csec/profile_pictures',
+      });
+      newProfilePic = uploadResult.secure_url;
+
+      // Optionally delete the old profile picture from Cloudinary
+      const oldPicture = user.personal_info?.profile_picture;
+      if (oldPicture) {
+        const publicId = extractPublicId(oldPicture, 'csec/profile_pictures');
+        if (publicId) await cloudinary.uploader.destroy(publicId);
+      }
+    }
+
+    // Handle CV upload
+    let newCV = user.personal_info?.cv_link;
+    if (req.files?.['cv']) {
+      const cvFile = req.files['cv'][0];
+      const uploadResult = await cloudinary.uploader.upload(cvFile.path, {
+        folder: 'csec/cvs',
+        resource_type: 'raw', // For non-image files like PDFs
+      });
+      newCV = uploadResult.secure_url;
+
+      // Optionally delete the old CV from Cloudinary
+      const oldCV = user.personal_info?.cv_link;
+      if (oldCV) {
+        const publicId = extractPublicId(oldCV, 'csec/cvs');
+        if (publicId) await cloudinary.uploader.destroy(publicId);
+      }
+    }
+
+    // Update user personal info
+    user.personal_info = {
+      ...(user.personal_info || {}),
+      first_name,
+      last_name,
+      gender,
+      birth_date,
+      phone_number,
+      github_handle,
+      telegram_handle,
+      department,
+      specialization,
+      graduation_year,
+      university_id,
+      bio,
+      instagram_handle,
+      linkedin_handle,
+      leetcode_handle,
+      codeforce_handle,
+      resources: (() => {
+        try {
+          return resources ? JSON.parse(resources) : [];
+        } catch (err) {
+          console.error('Invalid JSON for resources:', resources);
+          return [];
+        }
+      })(),
+      ...(newProfilePic && { profile_picture: newProfilePic }),
+      ...(newCV && { cv_link: newCV }),
+    };
+
+    await user.save();
+    res.status(200).json({ message: 'Personal information updated.', user });
   } catch (err) {
     next(err);
   }

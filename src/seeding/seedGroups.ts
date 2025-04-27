@@ -2,24 +2,24 @@ import Group from '../models/group.model';
 import Division from '../models/division.model';
 
 export const seedGroups = async () => {
-  const engineeringDivision = await Division.findOne({ name: 'Engineering' });
-  if (!engineeringDivision) {
-    console.log('Engineering division not found. Please seed divisions first.');
-    return;
-  }
+  const divisions = ['CPD', 'DEV', 'CYBER', 'DATA SCIENCE'];
+  const groupNames = ['G1', 'G2', 'G3', 'G4'];
 
-  const groups = [
-    { name: 'Frontend Team', division: engineeringDivision._id },
-    { name: 'Backend Team', division: engineeringDivision._id },
-  ];
+  for (const divisionName of divisions) {
+    const division = await Division.findOne({ name: divisionName });
+    if (!division) {
+      console.log(`Division ${divisionName} not found. Please seed divisions first.`);
+      continue;
+    }
 
-  for (const group of groups) {
-    const existingGroup = await Group.findOne({ name: group.name });
-    if (!existingGroup) {
-      await Group.create(group);
-      console.log(`Group ${group.name} created.`);
-    } else {
-      console.log(`Group ${group.name} already exists.`);
+    for (const groupName of groupNames) {
+      const existingGroup = await Group.findOne({ name: groupName, division: division._id });
+      if (!existingGroup) {
+        await Group.create({ name: groupName, division: division._id });
+        console.log(`Group ${groupName} created under division ${divisionName}.`);
+      } else {
+        console.log(`Group ${groupName} already exists under division ${divisionName}.`);
+      }
     }
   }
 };
