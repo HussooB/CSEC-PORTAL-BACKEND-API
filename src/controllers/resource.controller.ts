@@ -1,9 +1,19 @@
 import { Request, Response, NextFunction } from 'express';
 import Resource from '../models/resource.model';
 
-export const addResource = async (req: Request, res: Response, next: NextFunction) => {
+
+interface AuthenticatedRequest extends Request {
+  user: {
+    id: string;
+  };
+}
+
+export const addResource = async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
   try {
-    const resource = await Resource.create(req.body);
+    const resource = await Resource.create({
+      ...req.body,
+      uploaded_by: req.user.id, // Now TypeScript knows req.user exists
+    });
     res.status(201).json(resource);
   } catch (err) {
     next(err);

@@ -17,6 +17,7 @@ import divisionRoutes from './routes/division.routes';
 import attendanceRoutes from './routes/attendance.routes';
 import adminRoutes from './routes/admin.routes';
 import { errorHandler } from './middleware/errorHandler';
+import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import path from 'path';
 
@@ -24,11 +25,17 @@ const app = express();
 dotenv.config();
 connectDB();
 
-app.use(cors());
+app.use(cors({
+  origin: true, // or true for all origins
+  credentials: true // important for cookies
+}));
+
 app.use(express.json());
 
 // Serve static files
 app.use(express.static(path.join(__dirname, '../public')));
+
+app.use(cookieParser());
 
 // Root route
 app.get('/', (req, res) => {

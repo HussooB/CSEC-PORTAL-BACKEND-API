@@ -28,7 +28,7 @@ const router = Router();
  *       401:
  *         description: Unauthorized
  */
-router.post('/', verifyToken, validateBody(resourceSchema), addResource);
+router.post('/', verifyToken, validateBody(resourceSchema), addResource as any); // Explicitly cast to `any` if TypeScript still complains
 
 /**
  * @swagger

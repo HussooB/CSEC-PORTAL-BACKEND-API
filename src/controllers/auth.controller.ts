@@ -3,6 +3,17 @@ import User from '../models/user.model';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
+// Utility function to sanitize user object
+const sanitizeUser = (user: any) => {
+  const { passwordHash, refreshToken, __v, ...sanitizedUser } = user.toObject();
+  if (sanitizedUser.personal_info) {
+    // Remove unnecessary fields from personal_info if needed
+    const { resources, ...filteredPersonalInfo } = sanitizedUser.personal_info;
+    sanitizedUser.personal_info = filteredPersonalInfo;
+  }
+  return sanitizedUser;
+};
+
 // Login Controller
 export const login = async (req: Request, res: Response, next: NextFunction) => {
   const { email, password, rememberMe } = req.body;
@@ -21,19 +32,32 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       { expiresIn: '15m' } // Access token expires in 15 minutes
     );
 
-    // Generate Refresh Token (long-lived)
-    const refreshToken = jwt.sign(
-      { id: user._id },
-      process.env.JWT_REFRESH_SECRET!,
-      { expiresIn: rememberMe ? '7d' : '1d' } // Refresh token duration depends on rememberMe
-    );
+    let refreshToken: string | undefined;
 
-    // Save the refresh token in the database
-    user.refreshToken = refreshToken;
-    await user.save();
+    // Generate Refresh Token only if rememberMe is true
+    if (rememberMe) {
+      refreshToken = jwt.sign(
+        { id: user._id },
+        process.env.JWT_REFRESH_SECRET!,
+        { expiresIn: '7d' } // Refresh token expires in 7 days
+      );
 
-    // Send tokens to the client
-    res.json({ accessToken, refreshToken, user });
+      user.refreshToken = refreshToken;
+      await user.save();
+    } else {
+      // Clear any existing refresh token if rememberMe is false
+      user.refreshToken = null;
+      await user.save();
+    }
+
+    // Send tokens and sanitized user data to the client
+    const response = {
+      accessToken,
+      ...(rememberMe && { refreshToken }), // Include refreshToken only if rememberMe is true
+      user: sanitizeUser(user),
+    };
+
+    res.json(response);
   } catch (err) {
     next(err);
   }

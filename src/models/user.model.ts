@@ -58,11 +58,9 @@ const UserSchema = new Schema<IUser>(
       linkedin_handle: String,
       leetcode_handle: String,
       codeforce_handle: String,
-      profile_picture: String, // ✅ Added this line
+      profile_picture: String,
       cv_link: String,
-      resources: [{ resource_name: String, resource_link: String }],
-    },
-    refreshToken: { type: String, default: null },
+    }
   },
   { timestamps: true }
 );
