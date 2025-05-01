@@ -61,21 +61,64 @@ export const createUserAsPresident = async (req: Request, res: Response, next: N
 };
 
 // Get All Users
-export const getAllUsers = async (_req: Request, res: Response, next: NextFunction) => {
+export const getAllUsers = async (req: Request, res: Response, next: NextFunction) => {
+  const page = parseInt(req.query.page as string) || 1;
+  const limit = parseInt(req.query.limit as string) || 10;
+
   try {
-    const users = await User.find().select('-passwordHash');
-    res.json(users);
+    const total = await User.countDocuments();
+    const users = await User.find()
+      .select('-passwordHash') // Exclude sensitive fields
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    res.json({
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      data: users,
+    });
   } catch (err) {
     next(err);
   }
 };
-
 // Get User by ID
 export const getUserById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const user = await User.findById(req.params.id).select('-passwordHash');
+    const user = await User.findById(req.params.id)
+      .select('-passwordHash') // Exclude sensitive fields
+      .lean(); // Convert Mongoose document to plain JavaScript object
+
     if (!user) return res.status(404).json({ message: 'User not found' });
-    res.json(user);
+
+    // Ensure all personal_info fields are included
+    const personalInfo = user.personal_info || {};
+    const response = {
+      ...user,
+      personal_info: {
+        first_name: personalInfo.first_name ?? '',
+        last_name: personalInfo.last_name ?? '',
+        gender: personalInfo.gender ?? '',
+        birth_date: personalInfo.birth_date ?? null,
+        phone_number: personalInfo.phone_number ?? '',
+        github_handle: personalInfo.github_handle ?? '',
+        telegram_handle: personalInfo.telegram_handle ?? '',
+        department: personalInfo.department ?? '',
+        specialization: personalInfo.specialization ?? '',
+        graduation_year: personalInfo.graduation_year ?? null,
+        university_id: personalInfo.university_id ?? '',
+        bio: personalInfo.bio ?? '',
+        instagram_handle: personalInfo.instagram_handle ?? '',
+        linkedin_handle: personalInfo.linkedin_handle ?? '',
+        leetcode_handle: personalInfo.leetcode_handle ?? '',
+        codeforce_handle: personalInfo.codeforce_handle ?? '',
+        profile_picture: personalInfo.profile_picture ?? '',
+        cv_link: personalInfo.cv_link ?? '',
+      },
+    };
+
+    res.status(200).json({ message: 'User profile fetched successfully.', user: response });
   } catch (err) {
     next(err);
   }
@@ -235,7 +278,6 @@ export const updateFullPersonalInfo = async (req: Request, res: Response, next: 
       linkedin_handle,
       leetcode_handle,
       codeforce_handle,
-      resources,
     } = req.body;
 
     // Handle profile picture upload
@@ -292,20 +334,18 @@ export const updateFullPersonalInfo = async (req: Request, res: Response, next: 
       linkedin_handle,
       leetcode_handle,
       codeforce_handle,
-      resources: (() => {
-        try {
-          return resources ? JSON.parse(resources) : [];
-        } catch (err) {
-          console.error('Invalid JSON for resources:', resources);
-          return [];
-        }
-      })(),
       ...(newProfilePic && { profile_picture: newProfilePic }),
       ...(newCV && { cv_link: newCV }),
     };
 
     await user.save();
-    res.status(200).json({ message: 'Personal information updated.', user });
+
+    // Fetch the updated user with all fields populated
+    const updatedUser = await User.findById(userId)
+      .select('-passwordHash') // Exclude sensitive fields
+      .lean(); // Convert Mongoose document to plain JavaScript object
+
+    res.status(200).json({ message: 'Personal information updated.', user: updatedUser });
   } catch (err) {
     next(err);
   }

@@ -1,5 +1,5 @@
 import express from 'express';
-import 'express-async-errors'; 
+import 'express-async-errors';
 import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 import dotenv from 'dotenv';
@@ -7,7 +7,6 @@ import { connectDB } from './config/db';
 import userRoutes from './routes/user.routes';
 import authRoutes from './routes/auth.routes';
 import profileRoutes from './routes/profile.routes';
-// Add missing imports
 import sessionRoutes from './routes/session.routes';
 import resourceRoutes from './routes/resource.routes';
 import headsUpRoutes from './routes/headsUp.routes';
@@ -20,11 +19,16 @@ import { errorHandler } from './middleware/errorHandler';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import path from 'path';
+import { scheduleSessionStatusUpdate } from './utils/sessionCron'; // Import the cron job
+import { scheduleEventStatusUpdate } from './utils/eventCron';
 
 const app = express();
 dotenv.config();
 connectDB();
 
+// Start the session status update cron job
+scheduleSessionStatusUpdate();
+scheduleEventStatusUpdate();
 app.use(cors({
   origin: true, // or true for all origins
   credentials: true // important for cookies

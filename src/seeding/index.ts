@@ -1,11 +1,6 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import { seedRoles } from './seedRoles';
-import { seedUsers } from './seedUsers';
-import { seedDivisions } from './seedDivisions';
-import { seedGroups } from './seedGroups';
-import { seedRules } from './seedRules';
-import { seedProfiles } from './seedProfiles';
+import { seedAttendanceSessionsHeadsUpsResources } from './seedAttendanceSessionsHeadsUpsResources';
 
 // Load environment variables
 dotenv.config();
@@ -20,23 +15,9 @@ const startSeeding = async () => {
     await mongoose.connect(mongoUri);
     console.log('Connected to MongoDB.');
 
-    await seedRoles();
-    console.log('Roles seeded.');
-
-    await seedUsers();
-    console.log('Users seeded.');
-
-    await seedDivisions();
-    console.log('Divisions seeded.');
-
-    await seedGroups();
-    console.log('Groups seeded.');
-
-    await seedRules();
-    console.log('Rules seeded.');
-
-    await seedProfiles();
-    console.log('Profiles seeded.');
+    // Seed attendance, sessions, heads-ups, and resources
+    await seedAttendanceSessionsHeadsUpsResources();
+    console.log('Attendance, sessions, heads-ups, and resources seeded.');
 
     console.log('Seeding completed.');
     process.exit(0);
