@@ -43,15 +43,40 @@ export const createUserAsPresident = async (req: Request, res: Response, next: N
     await Division.findByIdAndUpdate(divisionId, { $addToSet: { members: user._id } });
     await Group.findByIdAndUpdate(groupId, { $addToSet: { members: user._id } });
 
+    // Updated HTML email content
     const html = `
-      <h2>Welcome to the CSEC Club!</h2>
-      <p>Your account has been created successfully.</p>
-      <p><b>Email:</b> ${email}</p>
-      <p><b>Password:</b> ${password}</p>
-      <p><b>Division:</b> ${division.name}</p>
-      <p><b>Group:</b> ${group.name}</p>
-      <p>We are excited to have you on board!</p>
+      <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+        <div style="text-align: center; padding: 20px; background-color: #e3f2fd; border-bottom: 2px solid #1565c0;">
+          <h1 style="color: #1565c0;">Welcome to the CSEC Club! 🎉</h1>
+        </div>
+        <div style="padding: 20px;">
+          <p>Hi there,</p>
+          <p>We are thrilled to welcome you to the <b>CSEC Club</b>! Your account has been successfully created, and you are now part of an amazing community of coding enthusiasts.</p>
+          <p>Here are your account details:</p>
+          <ul style="list-style: none; padding: 0;">
+            <li><b>Email:</b> ${email}</li>
+            <li><b>Password:</b> ${password}</li>
+            <li><b>Division:</b> ${division.name}</li>
+            <li><b>Group:</b> ${group.name}</li>
+          </ul>
+          <p>To get started, click the button below to log in to your account and explore the portal:</p>
+          <div style="text-align: center; margin: 20px 0;">
+            <a href="https://csec-portal-frontend-five.vercel.app/" 
+               style="background-color: #1565c0; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; font-size: 16px;">
+              Go to CSEC Portal
+            </a>
+          </div>
+          <p>After logging in, we recommend filling out your profile information to help us know you better and connect you with the right opportunities.</p>
+          <p>If you have any questions or need assistance, feel free to reach out to us. We’re here to help!</p>
+          <p>Welcome aboard, and let’s make great things happen together!</p>
+          <p style="margin-top: 30px; font-size: 14px; color: #777;">Best regards,<br>The CSEC Team</p>
+        </div>
+        <div style="text-align: center; padding: 10px; background-color: #e3f2fd; border-top: 2px solid #1565c0; font-size: 12px; color: #777;">
+          <p>© 2025 CSEC Club. All rights reserved.</p>
+        </div>
+      </div>
     `;
+
     await sendEmail(email, 'Welcome to CSEC 🎉', html);
 
     res.status(201).json({ message: 'User invited successfully.', user });
