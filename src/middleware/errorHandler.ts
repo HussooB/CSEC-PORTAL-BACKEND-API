@@ -15,6 +15,8 @@ export const errorHandler = (err: any, req: Request, res: Response, _next: NextF
   res.status(500).json({
     status: 'error',
     message: 'Internal Server Error', // Generic message for users
+    error: err.message, // Include the error message for debugging
+    stack: err.stack,
   });
 
   // Prevent the server from crashing by removing uncaught exception/rejection handlers

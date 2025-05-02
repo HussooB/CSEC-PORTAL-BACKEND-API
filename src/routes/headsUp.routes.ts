@@ -4,11 +4,13 @@ import { headsUpSchema } from '../utils/validationSchemas/headsUp.schema';
 import {
   submitHeadsUp,
   approveHeadsUp,
-  listHeadsUps
+  listHeadsUps,
+  getHeadsUpsByUser, // Import the new controller
 } from '../controllers/headsUp.controller';
 import { verifyToken } from '../middleware/auth.middleware';
 
 const router = Router();
+
 
 /**
  * @swagger
@@ -23,7 +25,21 @@ const router = Router();
  *       content:
  *         application/json:
  *           schema:
- *             $ref: '#/components/schemas/HeadsUp'
+ *             type: object
+ *             properties:
+ *               profile:
+ *                 type: string
+ *                 description: User ID
+ *               session:
+ *                 type: string
+ *                 description: Session ID
+ *               type:
+ *                 type: string
+ *                 enum: [emergency, medical, other]
+ *                 description: Type of heads-up
+ *               reason:
+ *                 type: string
+ *                 description: Reason for the heads-up
  *     responses:
  *       201:
  *         description: Heads-up submitted successfully
@@ -74,5 +90,30 @@ router.put('/:id', verifyToken, approveHeadsUp);
  *         description: Unauthorized
  */
 router.get('/', verifyToken, listHeadsUps);
+
+/**
+ * @swagger
+ * /headsUp/user/{userId}:
+ *   get:
+ *     summary: Get heads-ups by user ID
+ *     tags: [HeadsUp]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: List of heads-ups for the user
+ *       404:
+ *         description: No heads-ups found for the user
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/user/:userId', verifyToken, getHeadsUpsByUser);
 
 export default router;

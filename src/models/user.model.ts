@@ -3,7 +3,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 export interface IUser extends Document {
   email: string;
   passwordHash: string;
-  role: 'super_admin' | 'president' | 'division_head' | 'member';
+  role: 'super_admin' | 'president' | 'vice_president' | 'division_head' | 'member';
   current_profile_id?: mongoose.Types.ObjectId;
   profile_list: mongoose.Types.ObjectId[];
   personal_info?: {
@@ -23,11 +23,11 @@ export interface IUser extends Document {
     linkedin_handle?: string;
     leetcode_handle?: string;
     codeforce_handle?: string;
-    profile_picture?: string; // ✅ Added this line
+    profile_picture?: string;
     cv_link?: string;
-    resources?: { resource_name: string; resource_link: string }[];
   };
   refreshToken?: string | null;
+  lastSeen?: Date;
 }
 
 const UserSchema = new Schema<IUser>(
@@ -36,7 +36,7 @@ const UserSchema = new Schema<IUser>(
     passwordHash: { type: String, required: true },
     role: {
       type: String,
-      enum: ['super_admin', 'president', 'division_head', 'member'],
+      enum: ['super_admin', 'president', 'vice_president', 'division_head', 'member'],
       default: 'member',
     },
     current_profile_id: { type: Schema.Types.ObjectId, ref: 'Profile', default: null },
@@ -60,7 +60,8 @@ const UserSchema = new Schema<IUser>(
       codeforce_handle: String,
       profile_picture: String,
       cv_link: String,
-    }
+    },
+    lastSeen: { type: Date, default: null },
   },
   { timestamps: true }
 );

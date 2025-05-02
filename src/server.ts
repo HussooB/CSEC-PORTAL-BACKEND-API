@@ -10,6 +10,7 @@ import profileRoutes from './routes/profile.routes';
 import sessionRoutes from './routes/session.routes';
 import resourceRoutes from './routes/resource.routes';
 import headsUpRoutes from './routes/headsUp.routes';
+import headRoutes from './routes/head.routes';
 import groupRoutes from './routes/group.routes';
 import eventRoutes from './routes/event.routes';
 import divisionRoutes from './routes/division.routes';
@@ -19,8 +20,10 @@ import { errorHandler } from './middleware/errorHandler';
 import cookieParser from 'cookie-parser';
 import cors from 'cors';
 import path from 'path';
-import { scheduleSessionStatusUpdate } from './utils/sessionCron'; // Import the cron job
+import { scheduleSessionStatusUpdate } from './utils/sessionCron';
 import { scheduleEventStatusUpdate } from './utils/eventCron';
+import { updateLastSeen } from './middleware/updateLastSeen';
+import { verifyToken } from './middleware/auth.middleware';
 
 const app = express();
 dotenv.config();
@@ -29,6 +32,7 @@ connectDB();
 // Start the session status update cron job
 scheduleSessionStatusUpdate();
 scheduleEventStatusUpdate();
+
 app.use(cors({
   origin: true, // or true for all origins
   credentials: true // important for cookies
@@ -41,6 +45,22 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 app.use(cookieParser());
 
+// Apply verifyToken and updateLastSeen only to protected routes
+app.use('/api/user', verifyToken, updateLastSeen, userRoutes);
+app.use('/api/profile', verifyToken, updateLastSeen, profileRoutes);
+app.use('/api/session', verifyToken, updateLastSeen, sessionRoutes);
+app.use('/api/resource', verifyToken, updateLastSeen, resourceRoutes);
+app.use('/api/headsUp', verifyToken, updateLastSeen, headsUpRoutes);
+app.use('/api/head', verifyToken, updateLastSeen, headRoutes);
+app.use('/api/group', verifyToken, updateLastSeen, groupRoutes);
+app.use('/api/event', verifyToken, updateLastSeen, eventRoutes);
+app.use('/api/division', verifyToken, updateLastSeen, divisionRoutes);
+app.use('/api/attendance', verifyToken, updateLastSeen, attendanceRoutes);
+app.use('/api/admin', verifyToken, updateLastSeen, adminRoutes);
+
+// Exclude auth routes from verifyToken
+app.use('/api/auth', authRoutes);
+
 // Root route
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, './public/index.html'));
@@ -48,21 +68,6 @@ app.get('/', (req, res) => {
 
 // Documentation route
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
-
-// Existing routes
-app.use('/api/user', userRoutes);
-app.use('/api/auth', authRoutes);
-app.use('/api/profile', profileRoutes);
-
-// Add missing routes (keep these above errorHandler)
-app.use('/api/session', sessionRoutes);
-app.use('/api/resource', resourceRoutes);
-app.use('/api/headsUp', headsUpRoutes);
-app.use('/api/group', groupRoutes);
-app.use('/api/event', eventRoutes);
-app.use('/api/division', divisionRoutes);
-app.use('/api/attendance', attendanceRoutes);
-app.use('/api/admin', adminRoutes);
 
 // Error handler (should be last middleware)
 app.use(errorHandler);

@@ -3,6 +3,7 @@ import Attendance from '../models/attendance.model';
 import Session, { ISession } from '../models/session.model';
 import HeadsUp from '../models/headsUp.model';
 import Resource from '../models/resource.model';
+import Event from '../models/event.model'; // Import Event model
 import User from '../models/user.model';
 import dotenv from 'dotenv';
 
@@ -42,6 +43,15 @@ export const seedAttendanceSessionsHeadsUpsResources = async () => {
         endTime: '16:00',
         status: 'planned',
       },
+      {
+        title: 'Session 3',
+        date: new Date('2025-05-03T09:00:00Z'),
+        division: divisionId,
+        groups: [groupId],
+        startTime: '09:00',
+        endTime: '11:00',
+        status: 'planned',
+      },
     ];
 
     for (const session of sessions) {
@@ -60,7 +70,15 @@ export const seedAttendanceSessionsHeadsUpsResources = async () => {
     // 2. Seed Attendance
     const attendanceRecords = [
       { profile: user._id, sessionDate: createdSessions[0].date, status: 'present' },
+      { profile: user._id, sessionDate: createdSessions[0].date, status: 'present' },
+      { profile: user._id, sessionDate: createdSessions[0].date, status: 'absent' },
+      { profile: user._id, sessionDate: createdSessions[1].date, status: 'present' },
       { profile: user._id, sessionDate: createdSessions[1].date, status: 'absent' },
+      { profile: user._id, sessionDate: createdSessions[1].date, status: 'present' },
+      { profile: user._id, sessionDate: createdSessions[2].date, status: 'present' },
+      { profile: user._id, sessionDate: createdSessions[2].date, status: 'absent' },
+      { profile: user._id, sessionDate: createdSessions[2].date, status: 'absent' },
+      { profile: user._id, sessionDate: createdSessions[2].date, status: 'present' },
     ];
 
     for (const record of attendanceRecords) {
@@ -82,7 +100,13 @@ export const seedAttendanceSessionsHeadsUpsResources = async () => {
         profile: user._id,
         session: createdSessions[1]._id, // Link to the second session
         reason: 'Medical appointment',
-        status: 'pending',
+        status: 'pending', // Valid status
+      },
+      {
+        profile: user._id,
+        session: createdSessions[2]._id, // Link to the third session
+        reason: 'Family emergency',
+        status: 'approved', // Valid status
       },
     ];
 
@@ -111,6 +135,11 @@ export const seedAttendanceSessionsHeadsUpsResources = async () => {
         link: 'https://example.com/resource2',
         uploaded_by: user._id,
       },
+      {
+        name: 'Resource 3',
+        link: 'https://example.com/resource3',
+        uploaded_by: user._id,
+      },
     ];
 
     for (const resource of resources) {
@@ -123,7 +152,39 @@ export const seedAttendanceSessionsHeadsUpsResources = async () => {
       }
     }
 
-    console.log('Seeding for attendance, sessions, heads-ups, and resources completed.');
+    // 5. Seed Events
+    const events = [
+      {
+        title: 'Event 1',
+        description: 'This is the first event.',
+        date: new Date('2025-05-05'),
+        time: '10:00',
+        division: divisionId,
+        visibility: 'public',
+        status: 'planned',
+      },
+      {
+        title: 'Event 2',
+        description: 'This is the second event.',
+        date: new Date('2025-05-06'),
+        time: '14:00',
+        division: divisionId,
+        visibility: 'member',
+        status: 'planned',
+      },
+    ];
+
+    for (const event of events) {
+      const existingEvent = await Event.findOne({ title: event.title });
+      if (!existingEvent) {
+        await Event.create(event);
+        console.log(`Event ${event.title} created.`);
+      } else {
+        console.log(`Event ${event.title} already exists.`);
+      }
+    }
+
+    console.log('Seeding for attendance, sessions, heads-ups, resources, and events completed.');
   } catch (err) {
     console.error('Seeding failed:', err);
   }

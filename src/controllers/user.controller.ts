@@ -350,3 +350,15 @@ export const updateFullPersonalInfo = async (req: Request, res: Response, next: 
     next(err);
   }
 };
+
+export const getLastSeen = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const user = await User.findById(req.params.id).select('lastSeen');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json({ lastSeen: user.lastSeen });
+  } catch (err) {
+    next(err);
+  }
+};

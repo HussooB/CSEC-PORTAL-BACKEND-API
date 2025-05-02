@@ -12,12 +12,103 @@ import {
   deleteUserCV,
   deleteUserProfilePicture,
   updateFullPersonalInfo,
+  getLastSeen,
 } from '../controllers/user.controller';
 import { verifyToken } from '../middleware/auth.middleware';
 import { restrictTo } from '../middleware/role.middleware';
 import { uploadCV, uploadProfilePicture, uploadFullInfo } from '../middleware/cloudinary';
+import { rolePermissions } from '../utils/rolePermissions';
 
 const router = Router();
+
+/**
+ * @swagger
+ * /user/roles:
+ *   get:
+ *     summary: Get all user roles with permissions
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of user roles with permissions
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 roles:
+ *                   type: array
+ *                   items:
+ *                     type: object
+ *                     properties:
+ *                       role:
+ *                         type: string
+ *                         example: "vice_president"
+ *                       permissions:
+ *                         type: array
+ *                         items:
+ *                           type: string
+ *                         example: ["add members", "manage members", "schedule sessions", "create divisions"]
+ *       401:
+ *         description: Unauthorized
+ */
+// Define static routes first
+router.get('/roles', verifyToken, restrictTo('president'), (_req, res, next) => {
+  try {
+    const roles: Array<'vice_president' | 'division_head'> = ['vice_president', 'division_head'];
+    const rolesWithPermissions = roles.map((role) => ({
+      role,
+      permissions: rolePermissions[role] || [], // Fallback to an empty array
+    }));
+
+    res.status(200).json({ roles: rolesWithPermissions });
+  } catch (err) {
+    next(err);
+  }
+});
+
+/**
+ * @swagger
+ * /user/{id}:
+ *   get:
+ *     summary: Get user by ID
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: User details
+ *       404:
+ *         description: User not found
+ *       401:
+ *         description: Unauthorized
+ */
+// Define dynamic routes after static routes
+router.get('/:id', verifyToken, getUserById);
+
+/**
+ * @swagger
+ * /user:
+ *   get:
+ *     summary: Get all users
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of users
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/', verifyToken, getAllUsers);
 
 /**
  * @swagger
@@ -48,47 +139,6 @@ router.post(
   validateBody(userRegistrationSchema),
   createUserAsPresident
 );
-
-/**
- * @swagger
- * /user:
- *   get:
- *     summary: Get all users
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     responses:
- *       200:
- *         description: List of users
- *       401:
- *         description: Unauthorized
- */
-router.get('/', verifyToken, getAllUsers);
-
-/**
- * @swagger
- * /user/{id}:
- *   get:
- *     summary: Get user by ID
- *     tags: [Users]
- *     security:
- *       - bearerAuth: []
- *     parameters:
- *       - in: path
- *         name: id
- *         required: true
- *         schema:
- *           type: string
- *         description: User ID
- *     responses:
- *       200:
- *         description: User details
- *       404:
- *         description: User not found
- *       401:
- *         description: Unauthorized
- */
-router.get('/:id', verifyToken, getUserById);
 
 /**
  * @swagger
@@ -239,5 +289,30 @@ router.put(
   validateMultipartBody(personalInfoSchema),
   updateFullPersonalInfo
 );
+
+/**
+ * @swagger
+ * /user/{id}/last-seen:
+ *   get:
+ *     summary: Get the last seen time of a user
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: User ID
+ *     responses:
+ *       200:
+ *         description: Last seen time of the user
+ *       404:
+ *         description: User not found
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/:id/last-seen', verifyToken, getLastSeen);
 
 export default router;
