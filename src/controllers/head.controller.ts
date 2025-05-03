@@ -52,3 +52,29 @@ export const assignHead = async (req: Request, res: Response, next: NextFunction
     next(err);
   }
 };
+export const deleteHead = async (req: Request, res: Response, next: NextFunction) => {
+  const { userId } = req.params;
+
+  try {
+    // Check if the head exists
+    const head = await Head.findOne({ user: userId });
+    if (!head) {
+      return res.status(404).json({ message: 'Head not found' });
+    }
+
+    // Revert the user's role to 'member'
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    user.role = 'member';
+    await user.save();
+
+    // Delete the head record
+    await Head.deleteOne({ user: userId });
+
+    res.status(200).json({ message: 'Head deleted and role reverted to member' });
+  } catch (err) {
+    next(err);
+  }
+};

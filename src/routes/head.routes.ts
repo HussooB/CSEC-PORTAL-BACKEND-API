@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { getAllHeads, assignHead } from '../controllers/head.controller';
+import { getAllHeads, assignHead, deleteHead } from '../controllers/head.controller';
 import { verifyToken } from '../middleware/auth.middleware';
 import { restrictTo } from '../middleware/role.middleware';
 
@@ -55,5 +55,30 @@ router.get('/', verifyToken, restrictTo('president', 'vice_president'), getAllHe
  *         description: Unauthorized
  */
 router.post('/', verifyToken, restrictTo('president'), assignHead);
+
+/**
+ * @swagger
+ * /head/{userId}:
+ *   delete:
+ *     summary: Delete a head and revert their role to member
+ *     tags: [Heads]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: userId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the user to delete as head
+ *     responses:
+ *       200:
+ *         description: Head deleted and role reverted to member
+ *       404:
+ *         description: Head or user not found
+ *       401:
+ *         description: Unauthorized
+ */
+router.delete('/:userId', verifyToken, restrictTo('president'), deleteHead);
 
 export default router;

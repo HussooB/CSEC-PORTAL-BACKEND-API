@@ -5,11 +5,28 @@ import {
   markAttendance,
   getAttendanceByProfile,
   getAttendanceBySession,
-  getAttendanceStatus, // Import the new controller
+  getAttendanceStatus,
+  getAllAttendance, // Import the getAllAttendance function
 } from '../controllers/attendance.controller';
 import { verifyToken } from '../middleware/auth.middleware';
 
 const router = Router();
+
+/**
+ * @swagger
+ * /attendance/all:
+ *   get:
+ *     summary: Get all attendance records
+ *     tags: [Attendance]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all attendance records
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/all', verifyToken, getAllAttendance);
 
 /**
  * @swagger

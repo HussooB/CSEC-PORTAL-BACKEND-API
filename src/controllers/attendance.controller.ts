@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import Attendance from '../models/attendance.model';
+import Attendance from '../models/attendance.model'; // Correctly imported as Attendance
 import Rule from '../models/rule.model'; // Assuming you have a Rule model
 
 interface AttendanceParams {
@@ -89,5 +89,14 @@ export const getAttendanceStatus = async (
     res.json({ status, absencesCount: absences });
   } catch (err) {
     next(err);
+  }
+};
+
+export const getAllAttendance = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+  try {
+    const attendanceRecords = await Attendance.find(); // Corrected to use Attendance
+    res.status(200).json(attendanceRecords);
+  } catch (error) {
+    next(error); // Pass the error to the error-handling middleware
   }
 };
