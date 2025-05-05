@@ -2,10 +2,17 @@ import { Request, Response, NextFunction } from 'express';
 import User from '../models/user.model';
 import Division from '../models/division.model';
 import Group from '../models/group.model';
+import Head from '../models/head.model';
+import Profile from '../models/profile.model';
+import Attendance from '../models/attendance.model';
+import HeadsUp from '../models/headsUp.model';
+import Resource from '../models/resource.model';
+import Notification from '../models/notification.model';
 import bcrypt from 'bcryptjs';
 import { sendEmail } from '../utils/emailSender';
 import { v2 as cloudinary } from 'cloudinary';
 import { extractPublicId } from '../utils/cloudinaryHelpers';
+import mongoose from 'mongoose';
 
 // Extend Express Request type to include `files`
 declare global {
@@ -161,25 +168,67 @@ export const updateUser = async (req: Request, res: Response, next: NextFunction
 };
 
 // Delete User
+// Update your deleteUser controller in user.controller.ts
 export const deleteUser = async (req: Request, res: Response, next: NextFunction) => {
+  const session = await mongoose.startSession();
   try {
-    const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ message: 'User not found' });
+    session.startTransaction();
+    const userId = req.params.id;
+    
+    console.log(`Starting deletion for user ${userId}`); // Debug log
+    
+    const user = await User.findById(userId).session(session);
+    if (!user) {
+      await session.abortTransaction();
+      return res.status(404).json({ message: 'User not found' });
+    }
 
-    const personalInfo = user.personal_info || {};
-    const profilePublicId = extractPublicId(personalInfo.profile_picture, 'csec/profile_pictures');
-    const cvPublicId = extractPublicId(personalInfo.cv_link, 'csec/cvs');
+    // Cloudinary deletions (wrap in try-catch)
+    try {
+      const personalInfo = user.personal_info || {};
+      const profilePublicId = extractPublicId(personalInfo.profile_picture, 'csec/profile_pictures');
+      const cvPublicId = extractPublicId(personalInfo.cv_link, 'csec/cvs');
 
-    if (profilePublicId) await cloudinary.uploader.destroy(profilePublicId);
-    if (cvPublicId) await cloudinary.uploader.destroy(cvPublicId);
+      await Promise.all([
+        profilePublicId ? cloudinary.uploader.destroy(profilePublicId) : Promise.resolve(),
+        cvPublicId ? cloudinary.uploader.destroy(cvPublicId) : Promise.resolve()
+      ]);
+    } catch (cloudinaryError) {
+      console.error('Cloudinary deletion error:', cloudinaryError);
+      // Continue even if Cloudinary fails
+    }
 
-    await user.deleteOne();
-    res.json({ message: 'User and associated files deleted successfully.' });
+    // Database operations
+    await Promise.all([
+      Division.updateMany(
+        { $or: [{ members: userId }, { coordinators: userId }, { head: userId }] },
+        { $pull: { members: userId, coordinators: userId }, $unset: { head: "" } },
+        { session }
+      ),
+      Group.updateMany(
+        { members: userId },
+        { $pull: { members: userId } },
+        { session }
+      ),
+      Head.deleteMany({ user: userId }, { session }),
+      Profile.deleteMany({ user: userId }, { session }),
+      Attendance.deleteMany({ profile: userId }, { session }), // Changed from profile_list
+      HeadsUp.deleteMany({ profile: userId }, { session }),
+      Resource.deleteMany({ uploaded_by: userId }, { session }),
+      Notification.deleteMany({ user: userId }, { session }),
+      user.deleteOne({ session })
+    ]);
+
+    await session.commitTransaction();
+    res.json({ message: 'User and all related data deleted successfully.' });
   } catch (err) {
+    await session.abortTransaction();
+    console.error('Deletion error:', err); // Detailed error logging
     next(err);
+  } finally {
+    session.endSession();
   }
 };
-
 // Upload Profile Picture
 export const uploadUserProfilePicture = async (req: Request, res: Response, next: NextFunction) => {
   try {
