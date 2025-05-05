@@ -15,7 +15,7 @@
         "forceConsistentCasingInFileNames": true,
         "noFallthroughCasesInSwitch": true,
         "sourceMap": true,
-        "incremental": true
+        "incremental": false
     },
     "include": ["src"],
     "exclude": ["node_modules", "dist"]

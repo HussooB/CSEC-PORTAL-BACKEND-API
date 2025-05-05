@@ -4,14 +4,13 @@
   "version": "1.0.0",
   "description": "",
   "main": "dist/server.js",
-  "scripts": {
+"scripts": {
   "dev": "nodemon src/server.ts",
   "start": "node dist/server.js",
-  "build": "tsc",
-  "prebuild": "pnpm install --prod", 
-  "build:prod": "pnpm run clean && pnpm install --prod && tsc --skipLibCheck",
+  "build": "pnpm install --prod && tsc --skipLibCheck",
+  "build:prod": "pnpm run clean && pnpm install --prod && tsc --skipLibCheck --noEmitOnError",
   "clean": "rm -rf dist",
-  "postinstall": "pnpm run build" 
+  "postinstall": "echo 'Skip postinstall build in production'"
 },
   "keywords": [],
   "author": "",
