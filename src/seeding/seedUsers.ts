@@ -3,21 +3,15 @@ import bcrypt from 'bcryptjs';
 
 export const seedUsers = async () => {
   const users = [
+    
     {
-      email: 'kiyakebe799@gmail.com', // President
+      email: 'kiyakebe799@gmail.com', // Regular User
       passwordHash: await bcrypt.hash('12345678', 10),
+      divisionId: "680a9a2b9e86262d7c618bd1",
+      groupId: "680a9a2f9e86262d7c618bde",
       role: 'president',
     },
-    {
-      email: 'hussein.beshir100@gmail.com', // Division Head
-      passwordHash: await bcrypt.hash('12345678', 10),
-      role: 'division_head',
-    },
-    {
-      email: 'mohsad.7676@gmail.com', // Regular User
-      passwordHash: await bcrypt.hash('12345678', 10),
-      role: 'member',
-    },
+    
   ];
 
   for (const user of users) {

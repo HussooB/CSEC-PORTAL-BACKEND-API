@@ -1,6 +1,6 @@
 import mongoose from 'mongoose';
 import dotenv from 'dotenv';
-import { seedAttendanceSessionsHeadsUpsResources } from './seedAttendanceSessionsHeadsUpsResources';
+import { seedUsers } from './seedUsers';
 
 // Load environment variables
 dotenv.config();
@@ -16,7 +16,7 @@ const startSeeding = async () => {
     console.log('Connected to MongoDB.');
 
     // Seed attendance, sessions, heads-ups, and resources
-    await seedAttendanceSessionsHeadsUpsResources();
+    await seedUsers();
     console.log('Attendance, sessions, heads-ups, and resources seeded.');
 
     console.log('Seeding completed.');

@@ -1,11 +1,11 @@
 import { Router } from 'express';
-import { createGroup, getGroupsByDivision } from '../controllers/group.controller';
+import { createGroup, getGroupMembers, getGroupsByDivision } from '../controllers/group.controller';
 import { verifyToken } from '../middleware/auth.middleware';
 import { restrictTo } from '../middleware/role.middleware';
 import { checkOwnership } from '../middleware/checkOwnership';
 import { validateBody } from '../middleware/validateBody';
 import { groupSchema } from '../utils/validationSchemas/group.schema';
-
+import { getAllGroups } from '../controllers/group.controller';
 const router = Router();
 
 /**
@@ -38,6 +38,51 @@ router.post(
   checkOwnership,
   createGroup
 );
+/**
+ * @swagger
+ * /group/{groupId}/members:
+ *   get:
+ *     summary: Get users by group ID
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: groupId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: ID of the group
+ *     responses:
+ *       200:
+ *         description: List of users in the group
+ *       400:
+ *         description: Group ID is required
+ *       404:
+ *         description: Group not found
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/group/:groupId/members', verifyToken, restrictTo('president'), getGroupMembers);
+
+/**
+ * @swagger
+ * /group/all:
+ *   get:
+ *     summary: Get all groups
+ *     tags: [Groups]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: List of all groups
+ *       401:
+ *         description: Unauthorized
+ */
+router.get('/all', verifyToken, getAllGroups);
+
+export default router;
+
 
 /**
  * @swagger
@@ -64,4 +109,3 @@ router.post(
  */
 router.get('/:divisionId', verifyToken, getGroupsByDivision);
 
-export default router;

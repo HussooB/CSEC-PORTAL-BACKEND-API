@@ -81,4 +81,5 @@ router.post('/', verifyToken, restrictTo('president'), assignHead);
  */
 router.delete('/:userId', verifyToken, restrictTo('president'), deleteHead);
 
+
 export default router;

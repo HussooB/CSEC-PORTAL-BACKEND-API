@@ -12,7 +12,7 @@ import {
   deleteUserCV,
   deleteUserProfilePicture,
   updateFullPersonalInfo,
-  getLastSeen,
+  getLastSeen
 } from '../controllers/user.controller';
 import { verifyToken } from '../middleware/auth.middleware';
 import { restrictTo } from '../middleware/role.middleware';
@@ -53,7 +53,6 @@ const router = Router();
  *       401:
  *         description: Unauthorized
  */
-// Define static routes first
 router.get('/roles', verifyToken, restrictTo('president'), (_req, res, next) => {
   try {
     const roles: Array<'vice_president' | 'division_head'> = ['vice_president', 'division_head'];
@@ -67,6 +66,7 @@ router.get('/roles', verifyToken, restrictTo('president'), (_req, res, next) => 
     next(err);
   }
 });
+
 
 /**
  * @swagger
@@ -91,7 +91,6 @@ router.get('/roles', verifyToken, restrictTo('president'), (_req, res, next) => 
  *       401:
  *         description: Unauthorized
  */
-// Define dynamic routes after static routes
 router.get('/:id', verifyToken, getUserById);
 
 /**

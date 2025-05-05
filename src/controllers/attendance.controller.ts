@@ -38,6 +38,7 @@ export const getAttendanceByProfile = async (
       data,
     });
   } catch (err) {
+    console.log(err);
     next(err);
   }
 };
