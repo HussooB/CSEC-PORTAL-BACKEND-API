@@ -7,10 +7,10 @@
 "scripts": {
   "dev": "nodemon src/server.ts",
   "start": "node dist/server.js",
-  "build": "pnpm install --prod && tsc --skipLibCheck",
-  "build:prod": "pnpm run clean && pnpm install --prod && tsc --skipLibCheck --noEmitOnError",
+  "build": "pnpm install && tsc --skipLibCheck",
+  "build:prod": "pnpm run clean && pnpm install --prod=false && tsc --skipLibCheck --noEmitOnError",
   "clean": "rm -rf dist",
-  "postinstall": "echo 'Skip postinstall build in production'"
+  "postinstall": "echo 'Skipping postinstall in production'"
 },
   "keywords": [],
   "author": "",
