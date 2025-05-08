@@ -11,8 +11,8 @@ export const createDivision = async (req: Request, res: Response, next: NextFunc
 };
 
 export const getDivisions = async (req: Request, res: Response, next: NextFunction) => {
-  const page = parseInt(req.query.page as string) || 1;
-  const limit = parseInt(req.query.limit as string) || 10;
+  const page = parseInt(req.query.page as string) || 1000;
+  const limit = parseInt(req.query.limit as string) || 1000;
 
   try {
     const total = await Division.countDocuments();
