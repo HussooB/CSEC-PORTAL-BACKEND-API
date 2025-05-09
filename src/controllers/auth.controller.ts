@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from 'express';
 import User from '../models/user.model';
+import Division from '../models/division.model';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -29,7 +30,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     const accessToken = jwt.sign(
       { id: user._id, role: user.role },
       process.env.JWT_SECRET!,
-      { expiresIn: '1d' } // Access token expires in 15 minutes
+      { expiresIn: '1d' } // Access token expires in 1 day
     );
 
     let refreshToken: string | undefined;
@@ -50,61 +51,18 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       await user.save();
     }
 
-    // Send tokens and sanitized user data to the client
+    // Fetch the user's associated division
+    const division = await Division.findOne({ head: user._id }).select('_id name');
+
+    // Send tokens, sanitized user data, and division to the client
     const response = {
       accessToken,
       ...(rememberMe && { refreshToken }), // Include refreshToken only if rememberMe is true
       user: sanitizeUser(user),
+      division, // Include division in the response
     };
 
     res.json(response);
-  } catch (err) {
-    next(err);
-  }
-};
-
-// Refresh Token Controller
-export const refreshToken = async (req: Request, res: Response, next: NextFunction) => {
-  const { refreshToken } = req.body;
-
-  if (!refreshToken) return res.status(401).json({ message: 'Refresh token is required' });
-
-  try {
-    // Verify the refresh token
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as any;
-
-    // Find the user and validate the refresh token
-    const user = await User.findById(decoded.id);
-    if (!user || user.refreshToken !== refreshToken) {
-      return res.status(403).json({ message: 'Invalid refresh token' });
-    }
-
-    // Generate a new access token
-    const accessToken = jwt.sign(
-      { id: user._id, role: user.role },
-      process.env.JWT_SECRET!,
-      { expiresIn: '15m' } // New access token expires in 15 minutes
-    );
-
-    res.json({ accessToken });
-  } catch (err) {
-    res.status(403).json({ message: 'Invalid refresh token' });
-  }
-};
-
-// Logout Controller
-export const logout = async (req: Request, res: Response, next: NextFunction) => {
-  const { refreshToken } = req.body;
-
-  try {
-    // Find the user and clear the refresh token
-    const user = await User.findOne({ refreshToken });
-    if (!user) return res.status(401).json({ message: 'Invalid refresh token' });
-
-    user.refreshToken = null;
-    await user.save();
-
-    res.json({ message: 'Logged out successfully' });
   } catch (err) {
     next(err);
   }
