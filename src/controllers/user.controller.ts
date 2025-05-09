@@ -21,6 +21,11 @@ declare global {
       files?: {
         [fieldname: string]: Express.Multer.File[];
       };
+      user?: {
+        id: string;
+        role: string;
+        // other user properties if i needed
+      };
     }
   }
 }
@@ -432,6 +437,36 @@ export const getLastSeen = async (req: Request, res: Response, next: NextFunctio
       return res.status(404).json({ message: 'User not found' });
     }
     res.status(200).json({ lastSeen: user.lastSeen });
+  } catch (err) {
+    next(err);
+  }
+};
+export const togglePhoneNumberVisibility = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) => {
+  try {
+    if (!req.user?.id) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    const userId = req.user.id;
+    const user = await User.findById(userId);
+    
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // Toggle the displayPhoneNumber value
+    user.displayPhoneNumber = !user.displayPhoneNumber;
+    await user.save();
+
+    res.status(200).json({ 
+      success: true,
+      displayPhoneNumber: user.displayPhoneNumber,
+      message: `Phone number visibility ${user.displayPhoneNumber ? 'enabled' : 'disabled'}`
+    });
   } catch (err) {
     next(err);
   }

@@ -6,6 +6,7 @@ export interface IUser extends Document {
   role: 'super_admin' | 'president' | 'vice_president' | 'division_head' | 'member';
   current_profile_id?: mongoose.Types.ObjectId;
   profile_list: mongoose.Types.ObjectId[];
+  displayPhoneNumber: boolean; // New field
   personal_info?: {
     first_name?: string;
     last_name?: string;
@@ -41,6 +42,10 @@ const UserSchema = new Schema<IUser>(
     },
     current_profile_id: { type: Schema.Types.ObjectId, ref: 'Profile', default: null },
     profile_list: [{ type: Schema.Types.ObjectId, ref: 'Profile' }],
+    displayPhoneNumber: { 
+      type: Boolean, 
+      default: true // Default to showing phone number
+    },
     personal_info: {
       first_name: String,
       last_name: String,
@@ -61,6 +66,7 @@ const UserSchema = new Schema<IUser>(
       profile_picture: String,
       cv_link: String,
     },
+    refreshToken: { type: String, default: null },
     lastSeen: { type: Date, default: null },
   },
   { timestamps: true }

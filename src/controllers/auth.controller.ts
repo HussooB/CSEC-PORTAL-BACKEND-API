@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 import User from '../models/user.model';
 import Division from '../models/division.model';
+import Head from '../models/head.model'; // Import the Head model
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 
@@ -51,8 +52,20 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
       await user.save();
     }
 
-    // Fetch the user's associated division
-    const division = await Division.findOne({ head: user._id }).select('_id name');
+    // Fetch the user's associated division - UPDATED LOGIC
+    let division = null;
+    if (user.role === 'division_head') {
+      // First find the Head document for this user
+      const head = await Head.findOne({ 
+        user: user._id, 
+        role: 'division_head' 
+      });
+      
+      // Then find the Division if Head exists
+      if (head) {
+        division = await Division.findById(head.division).select('_id name');
+      }
+    }
 
     // Send tokens, sanitized user data, and division to the client
     const response = {
@@ -67,6 +80,7 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     next(err);
   }
 };
+
 
 // Refresh Token Controller
 export const refreshToken = async (req: Request, res: Response, next: NextFunction) => {

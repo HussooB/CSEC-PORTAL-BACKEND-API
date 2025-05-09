@@ -14,6 +14,9 @@ import {
   updateFullPersonalInfo,
   getLastSeen
 } from '../controllers/user.controller';
+import { 
+  togglePhoneNumberVisibility 
+} from '../controllers/user.controller';
 import { verifyToken } from '../middleware/auth.middleware';
 import { restrictTo } from '../middleware/role.middleware';
 import { uploadCV, uploadProfilePicture, uploadFullInfo } from '../middleware/cloudinary';
@@ -66,6 +69,39 @@ router.get('/roles', verifyToken, restrictTo('president'), (_req, res, next) => 
     next(err);
   }
 });
+
+/**
+ * @swagger
+ * /user/toggle-phone-visibility:
+ *   patch:
+ *     summary: Toggle phone number visibility
+ *     tags: [Users]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Phone number visibility toggled
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 displayPhoneNumber:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: User not found
+ */
+router.patch(
+  '/toggle-phone-visibility',
+  verifyToken,
+  togglePhoneNumberVisibility
+);
 
 
 /**

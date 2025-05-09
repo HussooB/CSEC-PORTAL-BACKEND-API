@@ -1,10 +1,14 @@
 import { Request, Response, NextFunction } from 'express';
 import Resource from '../models/resource.model';
-import { IUser } from '../models/user.model'; // Import the IUser interface
+import { IUser } from '../models/user.model';
 
-// Define the AuthenticatedRequest interface locally
+// Updated AuthenticatedRequest interface to match what your middleware actually provides
 interface AuthenticatedRequest extends Request {
-  user: IUser; // Use the IUser interface for the user property
+  user: {
+    id: string;
+    role: string;
+    // Add any other properties your middleware actually attaches
+  } & Partial<IUser>; // Merge with partial IUser for additional properties
 }
 
 export const addResource = async (req: Request, res: Response, next: NextFunction) => {
@@ -15,17 +19,16 @@ export const addResource = async (req: Request, res: Response, next: NextFunctio
       return res.status(400).json({ message: 'Division is required to add a resource.' });
     }
 
-    // Explicitly cast req to AuthenticatedRequest
     const authenticatedReq = req as AuthenticatedRequest;
 
-    if (!authenticatedReq.user || !authenticatedReq.user.id) {
+    if (!authenticatedReq.user?.id) {
       return res.status(401).json({ message: 'Unauthorized: User information is missing.' });
     }
 
     const resource = await Resource.create({
       name,
       link,
-      uploaded_by: authenticatedReq.user.id, // Use the IUser interface for type safety
+      uploaded_by: authenticatedReq.user.id,
       division,
     });
 
@@ -34,6 +37,7 @@ export const addResource = async (req: Request, res: Response, next: NextFunctio
     next(err);
   }
 };
+
 
 export const listResources = async (req: Request, res: Response, next: NextFunction) => {
   try {
