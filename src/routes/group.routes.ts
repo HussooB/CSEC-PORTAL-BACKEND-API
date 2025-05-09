@@ -63,7 +63,7 @@ router.post(
  *       401:
  *         description: Unauthorized
  */
-router.get('/group/:groupId/members', verifyToken, restrictTo('president'), getGroupMembers);
+router.get('/group/:groupId/members', verifyToken, restrictTo('president', 'division_head'), getGroupMembers);
 
 /**
  * @swagger
