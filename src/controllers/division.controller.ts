@@ -17,7 +17,14 @@ export const getDivisions = async (req: Request, res: Response, next: NextFuncti
   try {
     const total = await Division.countDocuments();
     const divisions = await Division.find()
-      .populate('head members coordinators')
+      .populate({
+        path: 'division_head',
+        populate: {
+          path: 'user',
+          model: 'User'
+        }
+      })
+      .populate('members coordinators')
       .skip((page - 1) * limit)
       .limit(limit);
 
@@ -35,7 +42,16 @@ export const getDivisions = async (req: Request, res: Response, next: NextFuncti
 
 export const getDivisionById = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const division = await Division.findById(req.params.id).populate('head members coordinators');
+    const division = await Division.findById(req.params.id)
+      .populate({
+        path: 'division_head',
+        populate: {
+          path: 'user',
+          model: 'User'
+        }
+      })
+      .populate('members coordinators');
+    
     if (!division) return res.status(404).json({ message: 'Division not found' });
     res.json(division);
   } catch (err) {
@@ -45,7 +61,9 @@ export const getDivisionById = async (req: Request, res: Response, next: NextFun
 
 export const updateDivision = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const updated = await Division.findByIdAndUpdate(req.params.id, req.body, { new: true });
+    const updated = await Division.findByIdAndUpdate(req.params.id, req.body, { 
+      new: true 
+    });
     if (!updated) return res.status(404).json({ message: 'Division not found' });
     res.json(updated);
   } catch (err) {
