@@ -67,3 +67,50 @@ export const login = async (req: Request, res: Response, next: NextFunction) => 
     next(err);
   }
 };
+
+// Refresh Token Controller
+export const refreshToken = async (req: Request, res: Response, next: NextFunction) => {
+  const { refreshToken } = req.body;
+
+  if (!refreshToken) return res.status(401).json({ message: 'Refresh token is required' });
+
+  try {
+    // Verify the refresh token
+    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as any;
+
+    // Find the user and validate the refresh token
+    const user = await User.findById(decoded.id);
+    if (!user || user.refreshToken !== refreshToken) {
+      return res.status(403).json({ message: 'Invalid refresh token' });
+    }
+
+    // Generate a new access token
+    const accessToken = jwt.sign(
+      { id: user._id, role: user.role },
+      process.env.JWT_SECRET!,
+      { expiresIn: '1d' } // New access token expires in 1 day
+    );
+
+    res.json({ accessToken });
+  } catch (err) {
+    res.status(403).json({ message: 'Invalid refresh token' });
+  }
+};
+
+// Logout Controller
+export const logout = async (req: Request, res: Response, next: NextFunction) => {
+  const { refreshToken } = req.body;
+
+  try {
+    // Find the user and clear the refresh token
+    const user = await User.findOne({ refreshToken });
+    if (!user) return res.status(401).json({ message: 'Invalid refresh token' });
+
+    user.refreshToken = null;
+    await user.save();
+
+    res.json({ message: 'Logged out successfully' });
+  } catch (err) {
+    next(err);
+  }
+};
