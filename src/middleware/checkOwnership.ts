@@ -6,6 +6,11 @@ export const checkOwnership = async (req: Request, res: Response, next: NextFunc
   const user = (req as any).user;
 
   try {
+    // Allow presidents to bypass ownership checks
+    if (user.role === 'president') {
+      return next();
+    }
+
     // For division operations
     if (req.params.divisionId || req.body.division) {
       const divisionId = req.params.divisionId || req.body.division;
@@ -15,7 +20,7 @@ export const checkOwnership = async (req: Request, res: Response, next: NextFunc
         const error = new Error('Not allowed to modify this division.');
         (error as any).statusCode = 403;
         (error as any).isOperational = true;
-        return next(error); // Forward error to errorHandler
+        return next(error);
       }
     }
 
@@ -28,7 +33,7 @@ export const checkOwnership = async (req: Request, res: Response, next: NextFunc
         const error = new Error('Not allowed to modify this group.');
         (error as any).statusCode = 403;
         (error as any).isOperational = true;
-        return next(error); // Forward error to errorHandler
+        return next(error);
       }
     }
 
