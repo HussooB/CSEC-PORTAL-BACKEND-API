@@ -1,24 +1,18 @@
+
 import { Request, Response, NextFunction } from 'express';
 import Resource from '../models/resource.model';
 import { IUser } from '../models/user.model';
 
-// Updated AuthenticatedRequest interface to match what your middleware actually provides
 interface AuthenticatedRequest extends Request {
   user: {
     id: string;
     role: string;
-    // Add any other properties your middleware actually attaches
-  } & Partial<IUser>; // Merge with partial IUser for additional properties
+  } & Partial<IUser>;
 }
 
 export const addResource = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const { name, link, division } = req.body;
-
-    if (!division) {
-      return res.status(400).json({ message: 'Division is required to add a resource.' });
-    }
-
     const authenticatedReq = req as AuthenticatedRequest;
 
     if (!authenticatedReq.user?.id) {
@@ -29,7 +23,7 @@ export const addResource = async (req: Request, res: Response, next: NextFunctio
       name,
       link,
       uploaded_by: authenticatedReq.user.id,
-      division,
+      division // Now optional
     });
 
     res.status(201).json(resource);
@@ -38,23 +32,32 @@ export const addResource = async (req: Request, res: Response, next: NextFunctio
   }
 };
 
-
 export const listResources = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { divisionId, userId } = req.query;
+    const { divisionId, userId, includePersonal } = req.query;
 
-    // Build the query dynamically
     const query: any = {};
-    if (divisionId) query.division = divisionId;
+    if (divisionId) {
+      query.division = divisionId;
+    } else if (includePersonal === 'true') {
+      // If includePersonal is true and no divisionId, get both personal and division resources
+      query.$or = [
+        { division: { $exists: false } },
+        { division: null }
+      ];
+    }
+
     if (userId) query.uploaded_by = userId;
 
-    const resources = await Resource.find(query).populate('division', 'name'); // Populate division name
+    const resources = await Resource.find(query)
+      .populate('division', 'name')
+      .populate('uploaded_by', 'email');
+
     res.json(resources);
   } catch (err) {
     next(err);
   }
 };
-
 export const deleteResource = async (req: Request, res: Response, next: NextFunction) => {
   try {
     await Resource.findByIdAndDelete(req.params.id);

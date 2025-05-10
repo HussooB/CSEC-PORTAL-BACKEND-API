@@ -6,6 +6,7 @@ import {
   updateSession,
   deleteSession
 } from '../controllers/session.controller';
+import { toggleCalendarVisibility } from '../controllers/session.controller';
 import { verifyToken } from '../middleware/auth.middleware';
 import { restrictTo } from '../middleware/role.middleware';
 import { checkOwnership } from '../middleware/checkOwnership';
@@ -59,6 +60,49 @@ router.post(
  *         description: Unauthorized
  */
 router.get('/', verifyToken, getSessions);
+
+
+/**
+ * @swagger
+ * /session/{id}/toggle-calendar:
+ *   patch:
+ *     summary: Toggle session calendar visibility
+ *     tags: [Sessions]
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Session ID
+ *     responses:
+ *       200:
+ *         description: Calendar visibility toggled
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 success:
+ *                   type: boolean
+ *                 showInCalendar:
+ *                   type: boolean
+ *                 message:
+ *                   type: string
+ *       401:
+ *         description: Unauthorized
+ *       404:
+ *         description: Session not found
+ */
+router.patch(
+  '/:id/toggle-calendar',
+  verifyToken,
+  restrictTo('president', 'division_head'),
+  toggleCalendarVisibility
+);
+
 
 /**
  * @swagger

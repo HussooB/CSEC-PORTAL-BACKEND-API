@@ -1,3 +1,4 @@
+
 import { Router } from 'express';
 import { validateBody } from '../middleware/validateBody';
 import { resourceSchema } from '../utils/validationSchemas/resource.schema';
@@ -10,7 +11,7 @@ const router = Router();
  * @swagger
  * /resource:
  *   post:
- *     summary: Add a new resource
+ *     summary: Add a new resource (division is optional)
  *     tags: [Resources]
  *     security:
  *       - bearerAuth: []
@@ -27,7 +28,7 @@ const router = Router();
  *                 type: string
  *               division:
  *                 type: string
- *                 description: Division ID
+ *                 description: Optional division ID
  *     responses:
  *       201:
  *         description: Resource added successfully
@@ -42,7 +43,7 @@ router.post('/', verifyToken, validateBody(resourceSchema), addResource);
  * @swagger
  * /resource:
  *   get:
- *     summary: Get resources
+ *     summary: Get resources (can filter by division, user, or include personal)
  *     tags: [Resources]
  *     security:
  *       - bearerAuth: []
@@ -57,6 +58,11 @@ router.post('/', verifyToken, validateBody(resourceSchema), addResource);
  *         schema:
  *           type: string
  *         description: User ID to filter resources
+ *       - in: query
+ *         name: includePersonal
+ *         schema:
+ *           type: boolean
+ *         description: Include personal resources (without division)
  *     responses:
  *       200:
  *         description: List of resources

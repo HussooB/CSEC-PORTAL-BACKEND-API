@@ -7,15 +7,16 @@ export const createSession = async (req: Request, res: Response, next: NextFunct
 
     // Ensure group is passed correctly
     const session = await Session.create({
-      title,
-      description,
-      division,
-      groups, // Pass group directly
-      date,
-      startTime,
-      endTime,
-      status,
-    });
+  title,
+  description,
+  division,
+  groups,
+  date,
+  startTime,
+  endTime,
+  status,
+  showInCalendar: true // Default to true
+});
 
     res.status(201).json(session);
   } catch (err) {
@@ -48,17 +49,18 @@ export const updateSession = async (req: Request, res: Response, next: NextFunct
     const session = await Session.findByIdAndUpdate(
       req.params.id,
       {
-        title,
-        description, // Include description
-        division,
-        groups,
-        date,
-        startTime,
-        endTime,
-        status,
-      },
-      { new: true }
-    );
+    title,
+    description,
+    division,
+    groups,
+    date,
+    startTime,
+    endTime,
+    status,
+    showInCalendar: req.body.showInCalendar // Include if provided
+  },
+  { new: true }
+);
 
     if (!session) return res.status(404).json({ message: 'Session not found' });
     res.json(session);
@@ -71,6 +73,33 @@ export const deleteSession = async (req: Request, res: Response, next: NextFunct
   try {
     await Session.findByIdAndDelete(req.params.id);
     res.json({ message: 'Session deleted' });
+  } catch (err) {
+    next(err);
+  }
+};
+// Add this new controller function
+export const toggleCalendarVisibility = async (
+  req: Request, 
+  res: Response, 
+  next: NextFunction
+) => {
+  try {
+    const sessionId = req.params.id;
+    const session = await Session.findById(sessionId);
+    
+    if (!session) {
+      return res.status(404).json({ message: 'Session not found' });
+    }
+
+    // Toggle the showInCalendar value
+    session.showInCalendar = !session.showInCalendar;
+    await session.save();
+
+    res.status(200).json({ 
+      success: true,
+      showInCalendar: session.showInCalendar,
+      message: `Session calendar visibility ${session.showInCalendar ? 'enabled' : 'disabled'}`
+    });
   } catch (err) {
     next(err);
   }

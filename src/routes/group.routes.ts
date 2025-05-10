@@ -35,7 +35,6 @@ router.post(
   verifyToken,
   restrictTo('president', 'division_head'),
   validateBody(groupSchema),
-  checkOwnership,
   createGroup
 );
 /**

@@ -1,7 +1,6 @@
-// session.model.ts
 import mongoose, { Schema, Document } from 'mongoose';
 
-export interface ISession extends Document {
+export interface ICalendar extends Document {
   title: string;
   description: string;
   division: mongoose.Types.ObjectId;
@@ -10,10 +9,9 @@ export interface ISession extends Document {
   startTime: string;
   endTime: string;
   status: 'planned' | 'started' | 'ended';
-  showInCalendar: boolean; // New field
 }
 
-const SessionSchema = new Schema<ISession>(
+const CalendarSchema = new Schema<ICalendar>(
   {
     title: { type: String, required: true },
     description: { type: String, required: true },
@@ -26,13 +24,9 @@ const SessionSchema = new Schema<ISession>(
       type: String,
       enum: ['planned', 'started', 'ended'],
       default: 'planned',
-    },
-    showInCalendar: { 
-      type: Boolean, 
-      default: true // Default to showing in calendar
-    },
+    }
   },
   { timestamps: true }
 );
 
-export default mongoose.model<ISession>('Session', SessionSchema);
+export default mongoose.model<ICalendar>('Calendar', CalendarSchema);
