@@ -24,6 +24,7 @@ import { scheduleSessionStatusUpdate } from './utils/sessionCron';
 import { scheduleEventStatusUpdate } from './utils/eventCron';
 import { updateLastSeen } from './middleware/updateLastSeen';
 import { verifyToken } from './middleware/auth.middleware';
+import calendarRoutes from './routes/calendar.routes';
 
 const app = express();
 dotenv.config();
@@ -57,7 +58,7 @@ app.use('/api/event', verifyToken, updateLastSeen, eventRoutes);
 app.use('/api/division', verifyToken, updateLastSeen, divisionRoutes);
 app.use('/api/attendance', verifyToken, updateLastSeen, attendanceRoutes);
 app.use('/api/admin', verifyToken, updateLastSeen, adminRoutes);
-
+app.use('/api/calendar', verifyToken, updateLastSeen, calendarRoutes);
 // Exclude auth routes from verifyToken
 app.use('/api/auth', authRoutes);
 
