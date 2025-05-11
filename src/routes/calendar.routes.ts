@@ -39,7 +39,6 @@ const router = Router();
 router.post(
   '/',
   verifyToken,
-  restrictTo('president', 'division_head'),
   validateBody(calendarSchema),
   createCalendar
 );
@@ -117,8 +116,6 @@ router.get('/:id', verifyToken, getCalendarById);
 router.put(
   '/:id',
   verifyToken,
-  restrictTo('president', 'division_head'),
-  checkOwnership,
   updateCalendar
 );
 
@@ -148,8 +145,6 @@ router.put(
 router.delete(
   '/:id',
   verifyToken,
-  restrictTo('president', 'division_head'),
-  checkOwnership,
   deleteCalendar
 );
 
